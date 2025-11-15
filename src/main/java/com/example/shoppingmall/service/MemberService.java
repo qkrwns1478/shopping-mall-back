@@ -46,6 +46,11 @@ public class MemberService implements UserDetailsService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public boolean checkUsernameAvailability(String username) {
+        return memberRepository.findByUsername(username).isEmpty();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

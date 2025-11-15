@@ -10,6 +10,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/members")
@@ -42,5 +46,15 @@ public class MemberController {
         }
 
         return "redirect:/";
+    }
+
+    @GetMapping("/check-username")
+    @ResponseBody
+    public ResponseEntity<Map<String, Boolean>> checkUsername(@RequestParam String username) {
+        if (username.length() < 4) {
+            return ResponseEntity.ok(Map.of("available", false, "invalid", true));
+        }
+        boolean isAvailable = memberService.checkUsernameAvailability(username);
+        return ResponseEntity.ok(Map.of("available", isAvailable));
     }
 }
