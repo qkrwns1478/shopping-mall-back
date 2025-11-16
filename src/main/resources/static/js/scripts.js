@@ -5,6 +5,9 @@ window.addEventListener('DOMContentLoaded', event => {
     const usernameCheckMsg = document.getElementById('username-check-msg');
 
     let isUsernameCheckedAndAvailable = false;
+    const passwordInput = document.getElementById('password');
+    const passwordConfirmInput = document.getElementById('passwordConfirm');
+    const passwordConfirmJsMsg = document.getElementById('password-confirm-js-msg');
 
     if (signupForm && usernameInput && checkButton) {
         checkButton.addEventListener('click', async () => {
@@ -51,12 +54,35 @@ window.addEventListener('DOMContentLoaded', event => {
         });
 
         signupForm.addEventListener('submit', (e) => {
+            let isValid = true;
+
             if (!isUsernameCheckedAndAvailable) {
                 e.preventDefault();
                 usernameCheckMsg.textContent = '아이디 중복 확인을 먼저 완료해주세요.';
                 usernameCheckMsg.classList.add('text-danger');
-                usernameInput.focus();
+                if(isValid) usernameInput.focus();
+                isValid = false;
+            }
+
+            passwordConfirmJsMsg.textContent = '';
+            passwordConfirmJsMsg.classList.remove('text-danger');
+
+            if (passwordInput.value !== passwordConfirmInput.value) {
+                e.preventDefault();
+
+                passwordConfirmJsMsg.textContent = '비밀번호가 일치하지 않습니다.';
+                passwordConfirmJsMsg.classList.add('text-danger');
+
+                if(isValid) passwordConfirmInput.focus();
+                isValid = false;
             }
         });
+
+        if (passwordConfirmInput) {
+            passwordConfirmInput.addEventListener('input', () => {
+                passwordConfirmJsMsg.textContent = '';
+                passwordConfirmJsMsg.classList.remove('text-danger');
+            });
+        }
     }
 });

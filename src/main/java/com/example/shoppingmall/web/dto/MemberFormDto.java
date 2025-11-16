@@ -20,6 +20,9 @@ public class MemberFormDto {
     @Size(min = 8, message = "비밀번호는 8자 이상 입력해주세요.")
     private String password;
 
+    @NotEmpty(message = "비밀번호 확인은 필수 입력 값입니다.")
+    private String passwordConfirm;
+
     @NotEmpty(message = "이메일은 필수 입력 값입니다.")
     @Email(message = "이메일 형식으로 입력해주세요.")
     private String email;

@@ -55,6 +55,17 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="passwordConfirm" class="form-label">비밀번호 확인</label>
+                        <input type="password" id="passwordConfirm" class="form-control" th:field="*{passwordConfirm}" />
+
+                        <div class="form-text text-danger"
+                             th:if="${#fields.hasErrors('passwordConfirm')}"
+                             th:errors="*{passwordConfirm}"></div>
+
+                        <div id="password-confirm-js-msg" class="form-text"></div>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="address" class="form-label">주소 (선택)</label>
                         <input type="text" id="address" class="form-control" th:field="*{address}" />
                     </div>

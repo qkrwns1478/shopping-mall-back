@@ -25,6 +25,10 @@ public class MemberService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
 
     public Member saveMember(MemberFormDto memberFormDto) {
+        if (!memberFormDto.getPassword().equals(memberFormDto.getPasswordConfirm())) {
+            throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
+        }
+
         validateDuplicateMember(memberFormDto.getUsername());
 
         Member member = Member.createMember(
