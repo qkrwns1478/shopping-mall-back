@@ -1,0 +1,69 @@
+package com.example.shoppingmall.web.controller;
+
+import com.example.shoppingmall.service.MemberService;
+import com.example.shoppingmall.web.dto.MemberFormDto;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
+
+@Controller
+@RequestMapping("/members")
+@RequiredArgsConstructor
+public class MemberController {
+
+    private final MemberService memberService;
+
+    @GetMapping("/signup")
+    public String showSignUpForm(Model model) {
+        model.addAttribute("memberFormDto", new MemberFormDto());
+        return "members/signupForm";
+    }
+
+    @PostMapping("/signup")
+    public String processSignUp(
+            @Valid MemberFormDto memberFormDto,
+            BindingResult bindingResult,
+            Model model
+    ) {
+        if (bindingResult.hasErrors()) {
+            return "members/signupForm";
+        }
+
+        try {
+            memberService.saveMember(memberFormDto);
+        } catch (IllegalStateException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "members/signupForm";
+        }
+
+        return "redirect:/";
+    }
+
+    @GetMapping("/check-email")
+    @ResponseBody
+    public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam String email) {
+        if (email.isBlank()) {
+            return ResponseEntity.ok(Map.of("available", false, "invalid", true));
+        }
+        boolean isAvailable = memberService.checkEmailAvailability(email);
+        return ResponseEntity.ok(Map.of("available", isAvailable));
+    }
+
+    @GetMapping("/login")
+    public String showLoginForm(Model model, @RequestParam(value = "error", required = false) String error) {
+        if (error != null) {
+            model.addAttribute("loginErrorMsg", "이메일 또는 비밀번호를 확인해주세요.");
+        }
+
+        return "members/loginForm";
+    }
+}

@@ -1,0 +1,69 @@
+package com.example.shoppingmall.service;
+
+import com.example.shoppingmall.domain.Member;
+import com.example.shoppingmall.repository.MemberRepository;
+import com.example.shoppingmall.web.dto.MemberFormDto;
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class MemberService implements UserDetailsService {
+
+    private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public Member saveMember(MemberFormDto memberFormDto) {
+        if (!memberFormDto.getPassword().equals(memberFormDto.getPasswordConfirm())) {
+            throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
+        }
+
+        validateDuplicateMember(memberFormDto.getEmail());
+
+        Member member = Member.createMember(
+                memberFormDto.getEmail(),
+                passwordEncoder.encode(memberFormDto.getPassword()),
+                memberFormDto.getName(),
+                memberFormDto.getAddress(),
+                memberFormDto.getBirthday()
+        );
+
+        return memberRepository.save(member);
+    }
+
+    private void validateDuplicateMember(String email) {
+        Optional<Member> findMember = memberRepository.findByEmail(email);
+        if (findMember.isPresent()) {
+            throw new IllegalStateException("이미 가입된 이메일입니다.");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public boolean checkEmailAvailability(String email) {
+        return memberRepository.findByEmail(email).isEmpty();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("이메일을 찾을 수 없습니다: " + email));
+
+        return User.builder()
+                .username(member.getEmail())
+                .password(member.getPassword())
+                .roles(member.getRole().toString())
+                .build();
+    }
+}
