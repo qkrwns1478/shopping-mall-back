@@ -29,10 +29,9 @@ public class MemberService implements UserDetailsService {
             throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
         }
 
-        validateDuplicateMember(memberFormDto.getUsername());
+        validateDuplicateMember(memberFormDto.getEmail());
 
         Member member = Member.createMember(
-                memberFormDto.getUsername(),
                 memberFormDto.getEmail(),
                 passwordEncoder.encode(memberFormDto.getPassword()),
                 memberFormDto.getName(),
@@ -43,26 +42,26 @@ public class MemberService implements UserDetailsService {
         return memberRepository.save(member);
     }
 
-    private void validateDuplicateMember(String username) {
-        Optional<Member> findMember = memberRepository.findByUsername(username);
+    private void validateDuplicateMember(String email) {
+        Optional<Member> findMember = memberRepository.findByEmail(email);
         if (findMember.isPresent()) {
-            throw new IllegalStateException("이미 가입된 회원입니다.");
+            throw new IllegalStateException("이미 가입된 이메일입니다.");
         }
     }
 
     @Transactional(readOnly = true)
-    public boolean checkUsernameAvailability(String username) {
-        return memberRepository.findByUsername(username).isEmpty();
+    public boolean checkEmailAvailability(String email) {
+        return memberRepository.findByEmail(email).isEmpty();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("아이디를 찾을 수 없습니다: " + username));
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("이메일을 찾을 수 없습니다: " + email));
 
         return User.builder()
-                .username(member.getUsername())
+                .username(member.getEmail())
                 .password(member.getPassword())
                 .roles(member.getRole().toString())
                 .build();

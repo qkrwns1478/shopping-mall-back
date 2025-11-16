@@ -17,14 +17,14 @@ public class Member {
     @Column(name = "member_id")
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 50)
-    private String username;
+//    @Column(unique = true, nullable = false, length = 50)
+//    private String username;
+
+    @Column(unique = true, nullable = false, length = 100)
+    private String email;
 
     @Column(nullable = false)
     private String password;
-
-    @Column(nullable = false, length = 100)
-    private String email;
 
     @Column(length = 100)
     private String name;
@@ -38,10 +38,10 @@ public class Member {
     private MemberRole role;
 
 
-    public static Member createMember(String username, String email, String password,
+    public static Member createMember(String email, String password,
                                       String name, String address, LocalDate birthday) {
         Member member = new Member();
-        member.setUsername(username);
+//        member.setUsername(username);
         member.setEmail(email);
         member.setPassword(password);
         member.setName(name);

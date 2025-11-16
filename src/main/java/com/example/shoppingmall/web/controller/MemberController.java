@@ -48,13 +48,13 @@ public class MemberController {
         return "redirect:/";
     }
 
-    @GetMapping("/check-username")
+    @GetMapping("/check-email")
     @ResponseBody
-    public ResponseEntity<Map<String, Boolean>> checkUsername(@RequestParam String username) {
-        if (username.length() < 4) {
+    public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam String email) {
+        if (email.isBlank()) {
             return ResponseEntity.ok(Map.of("available", false, "invalid", true));
         }
-        boolean isAvailable = memberService.checkUsernameAvailability(username);
+        boolean isAvailable = memberService.checkEmailAvailability(email);
         return ResponseEntity.ok(Map.of("available", isAvailable));
     }
 }

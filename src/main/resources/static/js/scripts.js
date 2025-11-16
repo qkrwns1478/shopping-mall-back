@@ -1,66 +1,66 @@
 window.addEventListener('DOMContentLoaded', event => {
     const signupForm = document.getElementById('signup-form');
-    const usernameInput = document.getElementById('username');
-    const checkButton = document.getElementById('btn-check-username');
-    const usernameCheckMsg = document.getElementById('username-check-msg');
+    const emailInput = document.getElementById('email');
+    const checkButton = document.getElementById('btn-check-email');
+    const emailCheckMsg = document.getElementById('email-check-msg');
 
-    let isUsernameCheckedAndAvailable = false;
+    let isEmailCheckedAndAvailable = false;
     const passwordInput = document.getElementById('password');
     const passwordConfirmInput = document.getElementById('passwordConfirm');
     const passwordConfirmJsMsg = document.getElementById('password-confirm-js-msg');
 
-    if (signupForm && usernameInput && checkButton) {
+    if (signupForm && emailInput && checkButton) {
         checkButton.addEventListener('click', async () => {
-            const username = usernameInput.value;
+            const email = emailInput.value;
 
-            usernameCheckMsg.textContent = '';
-            usernameCheckMsg.classList.remove('text-success', 'text-danger');
-            isUsernameCheckedAndAvailable = false;
+            emailCheckMsg.textContent = '';
+            emailCheckMsg.classList.remove('text-success', 'text-danger');
+            isEmailCheckedAndAvailable = false;
 
-            if (username.length < 4) {
-                usernameCheckMsg.textContent = '아이디는 4자 이상 20자 이하로 입력해주세요.';
-                usernameCheckMsg.classList.add('text-danger');
+            if (email.trim() === '' || !email.includes('@')) {
+                emailCheckMsg.textContent = '올바른 이메일 형식이 아닙니다.';
+                emailCheckMsg.classList.add('text-danger');
                 return;
             }
 
             try {
-                const response = await fetch(`/members/check-username?username=${username}`);
+                const response = await fetch(`/members/check-email?email=${email}`);
                 if (!response.ok) throw new Error('서버 응답 오류');
 
                 const data = await response.json();
 
                 if (data.available) {
-                    usernameCheckMsg.textContent = '사용 가능한 아이디입니다.';
-                    usernameCheckMsg.classList.add('text-success');
-                    isUsernameCheckedAndAvailable = true;
+                    emailCheckMsg.textContent = '사용 가능한 이메일입니다.';
+                    emailCheckMsg.classList.add('text-success');
+                    isEmailCheckedAndAvailable = true;
                 } else if (data.invalid) {
-                    usernameCheckMsg.textContent = '아이디는 4자 이상 20자 이하로 입력해주세요.';
-                    usernameCheckMsg.classList.add('text-danger');
+                    emailCheckMsg.textContent = '올바른 이메일 형식이 아닙니다.';
+                    emailCheckMsg.classList.add('text-danger');
                 } else {
-                    usernameCheckMsg.textContent = '이 아이디는 이미 사용 중입니다.';
-                    usernameCheckMsg.classList.add('text-danger');
+                    emailCheckMsg.textContent = '이 이메일은 이미 사용 중입니다.';
+                    emailCheckMsg.classList.add('text-danger');
                 }
             } catch (error) {
-                console.error('아이디 중복 검사 중 오류:', error);
-                usernameCheckMsg.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
-                usernameCheckMsg.classList.add('text-danger');
+                console.error('이메일 중복 검사 중 오류:', error);
+                emailCheckMsg.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
+                emailCheckMsg.classList.add('text-danger');
             }
         });
 
-        usernameInput.addEventListener('input', () => {
-            isUsernameCheckedAndAvailable = false;
-            usernameCheckMsg.textContent = '';
-            usernameCheckMsg.classList.remove('text-success', 'text-danger');
+        emailInput.addEventListener('input', () => {
+            isEmailCheckedAndAvailable = false;
+            emailCheckMsg.textContent = '';
+            emailCheckMsg.classList.remove('text-success', 'text-danger');
         });
 
         signupForm.addEventListener('submit', (e) => {
             let isValid = true;
 
-            if (!isUsernameCheckedAndAvailable) {
+            if (!isEmailCheckedAndAvailable) {
                 e.preventDefault();
-                usernameCheckMsg.textContent = '아이디 중복 확인을 먼저 완료해주세요.';
-                usernameCheckMsg.classList.add('text-danger');
-                if(isValid) usernameInput.focus();
+                emailCheckMsg.textContent = '이메일 중복 확인을 먼저 완료해주세요.';
+                emailCheckMsg.classList.add('text-danger');
+                if(isValid) emailInput.focus();
                 isValid = false;
             }
 
