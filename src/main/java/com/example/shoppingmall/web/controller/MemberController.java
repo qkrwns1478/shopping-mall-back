@@ -57,4 +57,13 @@ public class MemberController {
         boolean isAvailable = memberService.checkEmailAvailability(email);
         return ResponseEntity.ok(Map.of("available", isAvailable));
     }
+
+    @GetMapping("/login")
+    public String showLoginForm(Model model, @RequestParam(value = "error", required = false) String error) {
+        if (error != null) {
+            model.addAttribute("loginErrorMsg", "이메일 또는 비밀번호를 확인해주세요.");
+        }
+
+        return "members/loginForm";
+    }
 }

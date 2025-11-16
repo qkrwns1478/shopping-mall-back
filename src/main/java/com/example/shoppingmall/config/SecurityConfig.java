@@ -19,6 +19,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/", "/members/signup",
                                 "/members/check-email",
+                                "/members/login",
                                 "/css/**", "/js/**", "/assets/**"
                         ).permitAll()
                         .anyRequest().authenticated()
@@ -26,6 +27,8 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin
                         .loginPage("/members/login")
                         .defaultSuccessUrl("/")
+                        .usernameParameter("email")
+                        .failureUrl("/members/login?error=true")
                         .permitAll()
                 )
                 .logout(logout -> logout
