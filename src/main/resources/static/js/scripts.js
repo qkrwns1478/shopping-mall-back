@@ -17,6 +17,49 @@ window.addEventListener('DOMContentLoaded', event => {
     const passwordConfirmJsMsg = document.getElementById('password-confirm-js-msg');
 
     let isEmailVerified = false;
+    let timerInterval = null;
+    const codeValidTime = 300; // 5분
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    function startTimer() {
+        stopTimer();
+        let remainingTime = codeValidTime;
+
+        const updateTimerDisplay = () => {
+            const minutes = Math.floor(remainingTime / 60).toString().padStart(2, '0');
+            const seconds = (remainingTime % 60).toString().padStart(2, '0');
+            emailMsg.textContent = `인증번호가 발송되었습니다. (유효시간: ${minutes}:${seconds})`;
+            emailMsg.classList.remove('text-danger');
+            emailMsg.classList.add('text-success');
+
+            remainingTime--;
+
+            if (remainingTime < 0) {
+                stopTimer();
+                emailMsg.textContent = '인증번호 유효시간이 만료되었습니다. 다시 시도해주세요.';
+                emailMsg.classList.remove('text-success');
+                emailMsg.classList.add('text-danger');
+
+                emailInput.disabled = false;
+                sendCodeButton.disabled = false;
+                sendCodeButton.innerHTML = '인증번호 발송';
+                codeGroup.style.display = 'none';
+
+                codeInput.value = '';
+                codeMsg.textContent = '';
+            }
+        };
+
+        updateTimerDisplay();
+        timerInterval = setInterval(updateTimerDisplay, 1000);
+    }
+
 
     if (signupForm && emailInput && sendCodeButton && codeGroup) {
 
@@ -33,6 +76,12 @@ window.addEventListener('DOMContentLoaded', event => {
                 return;
             }
 
+            sendCodeButton.disabled = true;
+            sendCodeButton.innerHTML = `
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                전송 중...
+            `;
+
             try {
                 const response = await fetch('/members/send-verification-email', {
                     method: 'POST',
@@ -47,19 +96,21 @@ window.addEventListener('DOMContentLoaded', event => {
                 const data = await response.json();
 
                 if (data.success) {
-                    emailMsg.textContent = data.message;
-                    emailMsg.classList.add('text-success');
                     codeGroup.style.display = 'block';
                     emailInput.disabled = true;
-                    sendCodeButton.disabled = true;
+                    startTimer();
                 } else {
                     emailMsg.textContent = data.message;
                     emailMsg.classList.add('text-danger');
+                    sendCodeButton.disabled = false;
                 }
             } catch (error) {
                 console.error('이메일 인증 발송 중 오류:', error);
                 emailMsg.textContent = '오류가 발생했습니다. 다시 시도해주세요.';
                 emailMsg.classList.add('text-danger');
+                sendCodeButton.disabled = false;
+            } finally {
+                sendCodeButton.innerHTML = '인증번호 발송';
             }
         });
 
@@ -90,11 +141,15 @@ window.addEventListener('DOMContentLoaded', event => {
                 const data = await response.json();
 
                 if (data.verified) {
+                    stopTimer();
                     codeMsg.textContent = '이메일 인증에 성공했습니다.';
                     codeMsg.classList.add('text-success');
-                    isEmailVerified = true; // [중요] 최종 인증 플래그
+                    isEmailVerified = true;
                     codeInput.disabled = true;
                     verifyCodeButton.disabled = true;
+
+                    emailMsg.textContent = '이메일 인증이 완료되었습니다.';
+                    emailMsg.classList.add('text-success');
                 } else {
                     codeMsg.textContent = '인증번호가 일치하지 않습니다.';
                     codeMsg.classList.add('text-danger');
@@ -107,12 +162,15 @@ window.addEventListener('DOMContentLoaded', event => {
         });
 
         emailInput.addEventListener('input', () => {
+            stopTimer();
             isEmailVerified = false;
             emailMsg.textContent = '';
+            emailMsg.classList.remove('text-success', 'text-danger');
             codeGroup.style.display = 'none';
             codeInput.value = '';
             codeMsg.textContent = '';
             sendCodeButton.disabled = false;
+            sendCodeButton.innerHTML = '인증번호 발송';
         });
 
         signupForm.addEventListener('submit', (e) => {
@@ -121,6 +179,7 @@ window.addEventListener('DOMContentLoaded', event => {
             if (!isEmailVerified) {
                 e.preventDefault();
                 emailMsg.textContent = '이메일 인증을 완료해주세요.';
+                emailMsg.classList.remove('text-success');
                 emailMsg.classList.add('text-danger');
                 if(isValid) emailInput.focus();
                 isValid = false;
