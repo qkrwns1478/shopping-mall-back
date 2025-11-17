@@ -21,6 +21,7 @@ window.addEventListener('DOMContentLoaded', event => {
     const mainAddress = document.getElementById('mainAddress');
     const detailAddress = document.getElementById('detailAddress');
     const fullAddressInput = document.getElementById('fullAddressInput');
+    const hiddenUsername = document.getElementById('hidden-username-for-autocomplete');
 
     let isEmailVerified = false;
     let timerInterval = null;
@@ -84,7 +85,11 @@ window.addEventListener('DOMContentLoaded', event => {
         }
     }
 
-    if (signupForm && emailInput && sendCodeButton && codeGroup) {
+    if (signupForm) {
+
+        if (hiddenUsername) {
+            hiddenUsername.value = emailInput.value;
+        }
 
         sendCodeButton.addEventListener('click', async () => {
             const email = emailInput.value;
@@ -185,6 +190,10 @@ window.addEventListener('DOMContentLoaded', event => {
         });
 
         emailInput.addEventListener('input', () => {
+            if (hiddenUsername) {
+                hiddenUsername.value = emailInput.value;
+            }
+
             stopTimer();
             isEmailVerified = false;
             emailMsg.textContent = '';
