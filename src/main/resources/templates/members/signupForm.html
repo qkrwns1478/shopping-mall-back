@@ -66,8 +66,19 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="address" class="form-label">주소 (선택)</label>
-                        <input type="text" id="address" class="form-control" th:field="*{address}" />
+                        <label for="postcode" class="form-label">주소</label>
+                        <div class="input-group">
+                            <input type="text" id="postcode" class="form-control" placeholder="우편번호" readonly />
+                            <button class="btn btn-outline-secondary" type="button" id="btn-search-address">우편번호 찾기</button>
+                        </div>
+                        <input type="text" id="mainAddress" class="form-control mt-2" placeholder="주소" readonly />
+                        <input type="text" id="detailAddress" class="form-control mt-2" placeholder="상세주소" />
+
+                        <input type="hidden" th:field="*{address}" id="fullAddressInput" />
+
+                        <div class="form-text text-danger"
+                             th:if="${#fields.hasErrors('address')}"
+                             th:errors="*{address}"></div>
                     </div>
 
                     <div class="mb-3">
@@ -85,6 +96,7 @@
         </div>
     </div>
 
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </th:block>
 </body>
 </html>

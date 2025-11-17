@@ -16,6 +16,12 @@ window.addEventListener('DOMContentLoaded', event => {
     const passwordConfirmInput = document.getElementById('passwordConfirm');
     const passwordConfirmJsMsg = document.getElementById('password-confirm-js-msg');
 
+    const searchAddressButton = document.getElementById('btn-search-address');
+    const postcode = document.getElementById('postcode');
+    const mainAddress = document.getElementById('mainAddress');
+    const detailAddress = document.getElementById('detailAddress');
+    const fullAddressInput = document.getElementById('fullAddressInput');
+
     let isEmailVerified = false;
     let timerInterval = null;
     const codeValidTime = 300; // 5분
@@ -46,7 +52,7 @@ window.addEventListener('DOMContentLoaded', event => {
                 emailMsg.classList.remove('text-success');
                 emailMsg.classList.add('text-danger');
 
-                emailInput.disabled = false;
+                emailInput.readOnly = false;
                 sendCodeButton.disabled = false;
                 sendCodeButton.innerHTML = '인증번호 발송';
                 codeGroup.style.display = 'none';
@@ -60,6 +66,23 @@ window.addEventListener('DOMContentLoaded', event => {
         timerInterval = setInterval(updateTimerDisplay, 1000);
     }
 
+    function updateFullAddress() {
+        if (!postcode || !mainAddress || !detailAddress || !fullAddressInput) return;
+
+        const post = postcode.value.trim();
+        const main = mainAddress.value.trim();
+        const detail = detailAddress.value.trim();
+
+        if (main) {
+            let fullAddr = `(${post}) ${main}`;
+            if (detail) {
+                fullAddr += `, ${detail}`;
+            }
+            fullAddressInput.value = fullAddr;
+        } else {
+            fullAddressInput.value = '';
+        }
+    }
 
     if (signupForm && emailInput && sendCodeButton && codeGroup) {
 
@@ -97,7 +120,7 @@ window.addEventListener('DOMContentLoaded', event => {
 
                 if (data.success) {
                     codeGroup.style.display = 'block';
-                    emailInput.disabled = true;
+                    emailInput.readOnly = true;
                     startTimer();
                 } else {
                     emailMsg.textContent = data.message;
@@ -169,9 +192,27 @@ window.addEventListener('DOMContentLoaded', event => {
             codeGroup.style.display = 'none';
             codeInput.value = '';
             codeMsg.textContent = '';
-            sendCodeButton.disabled = false;
+            emailInput.readOnly = false;
             sendCodeButton.innerHTML = '인증번호 발송';
         });
+
+        if (searchAddressButton) {
+            searchAddressButton.addEventListener('click', () => {
+                new daum.Postcode({
+                    oncomplete: function(data) {
+                        postcode.value = data.zonecode;
+                        mainAddress.value = data.roadAddress || data.jibunAddress;
+
+                        detailAddress.focus();
+                        updateFullAddress();
+                    }
+                }).open();
+            });
+        }
+
+        if (detailAddress) {
+            detailAddress.addEventListener('input', updateFullAddress);
+        }
 
         signupForm.addEventListener('submit', (e) => {
             let isValid = true;
@@ -194,6 +235,8 @@ window.addEventListener('DOMContentLoaded', event => {
                 if(isValid) passwordConfirmInput.focus();
                 isValid = false;
             }
+
+            updateFullAddress();
         });
 
         if (passwordConfirmInput) {
