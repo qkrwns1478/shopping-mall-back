@@ -17,17 +17,25 @@
 
                     <div class="mb-3">
                         <label for="email" class="form-label">이메일</label>
-
                         <div class="input-group">
                             <input type="email" id="email" class="form-control" th:field="*{email}" />
-                            <button class="btn btn-outline-secondary" type="button" id="btn-check-email">중복 확인</button>
+                            <button class="btn btn-outline-secondary" type="button" id="btn-send-code">인증번호 발송</button>
                         </div>
 
                         <div class="form-text text-danger"
                              th:if="${#fields.hasErrors('email')}"
                              th:errors="*{email}"></div>
 
-                        <div id="email-check-msg" class="form-text"></div>
+                        <div id="email-msg" class="form-text"></div>
+                    </div>
+
+                    <div id="verification-code-group" class="mb-3" style="display: none;">
+                        <label for="verification-code" class="form-label">인증번호</label>
+                        <div class="input-group">
+                            <input type="text" id="verification-code" class="form-control" placeholder="6자리 숫자를 입력하세요" />
+                            <button class="btn btn-outline-secondary" type="button" id="btn-verify-code">인증 확인</button>
+                        </div>
+                        <div id="code-msg" class="form-text"></div>
                     </div>
 
                     <div class="mb-3">
