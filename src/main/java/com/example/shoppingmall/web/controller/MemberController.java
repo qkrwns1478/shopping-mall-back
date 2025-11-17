@@ -46,13 +46,18 @@ public class MemberController {
 
         try {
             memberService.saveMember(memberFormDto);
-            session.removeAttribute("verifiedEmail"); // 가입 완료 후 세션 정보 삭제
+            session.removeAttribute("verifiedEmail");
         } catch (IllegalStateException e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "members/signupForm";
         }
 
-        return "redirect:/";
+        return "redirect:/members/signup-success";
+    }
+
+    @GetMapping("/signup-success")
+    public String showSignUpSuccess() {
+        return "members/signupSuccess";
     }
 
     /* @GetMapping("/check-email")
