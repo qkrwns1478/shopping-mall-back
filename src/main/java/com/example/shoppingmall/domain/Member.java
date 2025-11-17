@@ -41,7 +41,7 @@ public class Member {
     public static Member createMember(String email, String password,
                                       String name, String address, LocalDate birthday) {
         Member member = new Member();
-//        member.setUsername(username);
+        // member.setUsername(username);
         member.setEmail(email);
         member.setPassword(password);
         member.setName(name);

@@ -18,7 +18,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/members/signup",
-                                "/members/check-email",
+                                "/members/signup-success",
+                                // "/members/check-email",
+                                "/members/send-verification-email",
+                                "/members/verify-code",
                                 "/members/login",
                                 "/css/**", "/js/**", "/assets/**"
                         ).permitAll()

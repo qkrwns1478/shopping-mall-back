@@ -17,30 +17,45 @@
 
                     <div class="mb-3">
                         <label for="email" class="form-label">이메일</label>
-
                         <div class="input-group">
-                            <input type="email" id="email" class="form-control" th:field="*{email}" />
-                            <button class="btn btn-outline-secondary" type="button" id="btn-check-email">중복 확인</button>
+                            <input type="email" id="email" class="form-control" th:field="*{email}" autocomplete="email" />
+                            <button class="btn btn-outline-secondary" type="button" id="btn-send-code">인증번호 발송</button>
                         </div>
 
                         <div class="form-text text-danger"
                              th:if="${#fields.hasErrors('email')}"
                              th:errors="*{email}"></div>
 
-                        <div id="email-check-msg" class="form-text"></div>
+                        <div id="email-msg" class="form-text"></div>
+                    </div>
+
+                    <div id="verification-code-group" class="mb-3" style="display: none;">
+                        <label for="verification-code" class="form-label">인증번호</label>
+                        <div class="input-group">
+                            <input type="text" id="verification-code" class="form-control" placeholder="6자리 숫자를 입력하세요" autocomplete="off" />
+                            <button class="btn btn-outline-secondary" type="button" id="btn-verify-code">인증 확인</button>
+                        </div>
+                        <div id="code-msg" class="form-text"></div>
                     </div>
 
                     <div class="mb-3">
                         <label for="name" class="form-label">이름</label>
-                        <input type="text" id="name" class="form-control" th:field="*{name}" />
+                        <input type="text" id="name" class="form-control" th:field="*{name}" autocomplete="name" />
                         <div class="form-text text-danger"
                              th:if="${#fields.hasErrors('name')}"
                              th:errors="*{name}"></div>
                     </div>
 
+                    <input type="text"
+                           id="hidden-username-for-autocomplete"
+                           autocomplete="username"
+                           th:value="*{email}"
+                           style="position: absolute; left: -9999px; opacity: 0; width: 0; height: 0; top: -9999px;"
+                           tabindex="-1" aria-hidden="true">
+
                     <div class="mb-3">
                         <label for="password" class="form-label">비밀번호</label>
-                        <input type="password" id="password" class="form-control" th:field="*{password}" />
+                        <input type="password" id="password" class="form-control" th:field="*{password}" autocomplete="new-password" />
                         <div class="form-text text-danger"
                              th:if="${#fields.hasErrors('password')}"
                              th:errors="*{password}"></div>
@@ -48,7 +63,7 @@
 
                     <div class="mb-3">
                         <label for="passwordConfirm" class="form-label">비밀번호 확인</label>
-                        <input type="password" id="passwordConfirm" class="form-control" th:field="*{passwordConfirm}" />
+                        <input type="password" id="passwordConfirm" class="form-control" th:field="*{passwordConfirm}" autocomplete="new-password" />
 
                         <div class="form-text text-danger"
                              th:if="${#fields.hasErrors('passwordConfirm')}"
@@ -58,13 +73,24 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="address" class="form-label">주소 (선택)</label>
-                        <input type="text" id="address" class="form-control" th:field="*{address}" />
+                        <label for="postcode" class="form-label">주소</label>
+                        <div class="input-group">
+                            <input type="text" id="postcode" class="form-control" placeholder="우편번호" readonly autocomplete="postal-code" />
+                            <button class="btn btn-outline-secondary" type="button" id="btn-search-address">우편번호 찾기</button>
+                        </div>
+                        <input type="text" id="mainAddress" class="form-control mt-2" placeholder="주소" readonly autocomplete="address-line1" />
+                        <input type="text" id="detailAddress" class="form-control mt-2" placeholder="상세주소" autocomplete="address-line2" />
+
+                        <input type="hidden" th:field="*{address}" id="fullAddressInput" />
+
+                        <div class="form-text text-danger"
+                             th:if="${#fields.hasErrors('address')}"
+                             th:errors="*{address}"></div>
                     </div>
 
                     <div class="mb-3">
                         <label for="birthday" class="form-label">생년월일 (선택)</label>
-                        <input type="date" id="birthday" class="form-control" th:field="*{birthday}" />
+                        <input type="date" id="birthday" class="form-control" th:field="*{birthday}" autocomplete="off" />
                     </div>
 
                     <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
@@ -77,6 +103,7 @@
         </div>
     </div>
 
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </th:block>
 </body>
 </html>
