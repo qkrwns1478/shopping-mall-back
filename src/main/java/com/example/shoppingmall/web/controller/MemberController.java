@@ -159,26 +159,36 @@ public class MemberController {
     }
 
     @GetMapping("/mypage")
+    public String myPage(Model model, Principal principal, @RequestParam(required = false) String success) {
+        Member member = memberService.findMember(principal.getName());
+        model.addAttribute("member", member);
+
+        if (success != null) {
+            model.addAttribute("successMessage", "회원 정보가 성공적으로 수정되었습니다.");
+        }
+        return "members/myPage";
+    }
+
+    @GetMapping("/edit/check")
     public String checkPasswordForm() {
         return "members/checkPassword";
     }
 
-    @PostMapping("/mypage/check")
+    @PostMapping("/edit/check")
     public String checkPassword(@RequestParam String password, Principal principal, HttpSession session, Model model) {
         if (memberService.checkPassword(principal.getName(), password)) {
-            session.setAttribute("mypageAuth", true);
-            return "redirect:/members/mypage/edit";
+            session.setAttribute("editAuth", true);
+            return "redirect:/members/edit/form";
         } else {
             model.addAttribute("errorMessage", "비밀번호가 일치하지 않습니다.");
             return "members/checkPassword";
         }
     }
 
-    @GetMapping("/mypage/edit")
-    public String myPageForm(Model model, Principal principal, HttpSession session, @RequestParam(required = false) String error) {
-        Boolean auth = (Boolean) session.getAttribute("mypageAuth");
-        if (auth == null || !auth) {
-            return "redirect:/members/mypage";
+    @GetMapping("/edit/form")
+    public String editForm(Model model, Principal principal, HttpSession session) {
+        if (session.getAttribute("editAuth") == null) {
+            return "redirect:/members/edit/check";
         }
 
         Member member = memberService.findMember(principal.getName());
@@ -210,57 +220,53 @@ public class MemberController {
                 mainPart = fullAddr.substring(0, splitIndex);
                 detailPart = fullAddr.substring(splitIndex + 2);
             }
+
             String postcode = "";
             String roadAddress = mainPart;
-            if (mainPart.startsWith("(") && mainPart.contains(")")) {
+            if (mainPart.startsWith("(") && mainPart.indexOf(")") > 0) {
                 int closeParenIndex = mainPart.indexOf(")");
                 postcode = mainPart.substring(1, closeParenIndex);
                 roadAddress = mainPart.substring(closeParenIndex + 1).trim();
             }
+
             model.addAttribute("postcode", postcode);
             model.addAttribute("mainAddress", roadAddress);
             model.addAttribute("detailAddress", detailPart);
         }
 
-        if (error != null) {
-            model.addAttribute("errorMessage", error);
-        }
-
-        return "members/myPage";
+        return "members/editProfile";
     }
 
-    @PostMapping("/mypage/update")
+    @PostMapping("/edit/update")
     public String updateMember(@Valid MemberUpdateDto memberUpdateDto, BindingResult bindingResult, Principal principal, HttpSession session, Model model) {
-        Boolean auth = (Boolean) session.getAttribute("mypageAuth");
-        if (auth == null || !auth) {
-            return "redirect:/members/mypage";
+        if (session.getAttribute("editAuth") == null) {
+            return "redirect:/members/edit/check";
         }
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("email", principal.getName());
-            return "members/myPage";
+            return "members/editProfile";
         }
 
         try {
             memberService.updateMember(principal.getName(), memberUpdateDto);
-            session.removeAttribute("mypageAuth");
-            return "redirect:/";
+            session.removeAttribute("editAuth");
+            return "redirect:/members/mypage?success=true";
         } catch (IllegalStateException e) {
             model.addAttribute("errorMessage", e.getMessage());
             model.addAttribute("email", principal.getName());
-            return "members/myPage";
+            return "members/editProfile";
         }
     }
 
-    @PostMapping("/mypage/delete")
-    public String deleteMember(@RequestParam String password, Principal principal, HttpServletRequest request, HttpServletResponse response) {
+    @PostMapping("/withdraw")
+    public String withdraw(@RequestParam String password, Principal principal, HttpServletRequest request, HttpServletResponse response) {
         try {
             memberService.deleteMember(principal.getName(), password);
             new SecurityContextLogoutHandler().logout(request, response, SecurityContextHolder.getContext().getAuthentication());
             return "redirect:/";
         } catch (IllegalStateException e) {
-            String encodedMsg = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
-            return "redirect:/members/mypage?error=" + encodedMsg;
+            return "redirect:/members/edit/form?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
         }
     }
 }

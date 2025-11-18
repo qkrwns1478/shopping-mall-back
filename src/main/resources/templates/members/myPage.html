@@ -12,143 +12,50 @@
             <div class="col-md-8">
                 <h2 class="mb-4">마이페이지</h2>
 
-                <div class="card">
-                    <div class="card-header">회원 정보 수정</div>
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div class="card shadow-sm">
                     <div class="card-body">
-                        <form th:action="@{/members/mypage/update}" th:object="${memberUpdateDto}" method="post" id="updateForm">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <h5 class="card-title mb-4">내 정보</h5>
 
-                            <div class="mb-3">
-                                <label class="form-label">이메일</label>
-                                <input type="text" class="form-control" th:value="${email}" disabled readonly />
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label text-muted">이름</label>
+                            <div class="col-sm-9">
+                                <p class="form-control-plaintext fw-bold" th:text="${member.name}">홍길동</p>
                             </div>
-
-                            <div class="mb-3">
-                                <label for="name" class="form-label">이름</label>
-                                <input type="text" id="name" class="form-control" th:field="*{name}" />
-                                <div class="form-text text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label text-muted">이메일</label>
+                            <div class="col-sm-9">
+                                <p class="form-control-plaintext" th:text="${member.email}">email@example.com</p>
                             </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">주소</label>
-                                <div class="input-group mb-2">
-                                    <input type="text" id="postcode" class="form-control" placeholder="우편번호" readonly onclick="execDaumPostcode()" th:value="${postcode}">
-                                    <button type="button" class="btn btn-outline-secondary" onclick="execDaumPostcode()">우편번호 찾기</button>
-                                </div>
-                                <input type="text" id="mainAddress" class="form-control mb-2" placeholder="주소" readonly onclick="execDaumPostcode()" th:value="${mainAddress}" />
-
-                                <input type="text" id="detailAddress" class="form-control" placeholder="상세주소" th:value="${detailAddress}" />
-
-                                <input type="hidden" id="fullAddress" th:field="*{address}" />
-
-                                <div class="form-text text-danger" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label text-muted">주소</label>
+                            <div class="col-sm-9">
+                                <p class="form-control-plaintext" th:text="${member.address}">서울시 강남구...</p>
                             </div>
-
-                            <div class="mb-3">
-                                <label for="birthday" class="form-label">생년월일</label>
-                                <input type="date" id="birthday" class="form-control" th:field="*{birthday}" />
+                        </div>
+                        <div class="mb-3 row">
+                            <label class="col-sm-3 col-form-label text-muted">생년월일</label>
+                            <div class="col-sm-9">
+                                <p class="form-control-plaintext" th:text="${member.birthday}">2000-01-01</p>
                             </div>
+                        </div>
 
-                            <hr class="my-4">
+                        <hr class="my-4">
 
-                            <h5 class="mb-3">비밀번호 변경 (선택)</h5>
-                            <div class="mb-3">
-                                <label for="newPassword" class="form-label">새 비밀번호</label>
-                                <input type="password" id="newPassword" class="form-control" th:field="*{newPassword}" placeholder="변경할 경우에만 입력하세요" autocomplete="new-password" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="newPasswordConfirm" class="form-label">새 비밀번호 확인</label>
-                                <input type="password" id="newPasswordConfirm" class="form-control" th:field="*{newPasswordConfirm}" autocomplete="new-password" />
-                            </div>
-
-                            <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
-                            <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
-
-                            <div class="d-flex justify-content-between align-items-center mt-4">
-                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">회원 탈퇴</button>
-                                <button type="submit" class="btn btn-primary">정보 수정</button>
-                            </div>
-                        </form>
+                        <div class="d-flex justify-content-end">
+                            <a th:href="@{/members/edit/check}" class="btn btn-primary">정보 수정</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">회원 탈퇴</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-danger fw-bold">정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>
-                    <p>탈퇴하려면 비밀번호를 입력하세요.</p>
-                    <form id="deleteForm" th:action="@{/members/mypage/delete}" method="post">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                        <input type="password" name="password" class="form-control" placeholder="비밀번호" required autocomplete="current-password">
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                    <button type="button" class="btn btn-danger" onclick="document.getElementById('deleteForm').submit();">탈퇴하기</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-    <script>
-        document.getElementById('detailAddress').addEventListener('input', function() {
-            updateFullAddress();
-        });
-
-        function updateFullAddress() {
-            const postcode = document.getElementById('postcode').value;
-            const mainAddr = document.getElementById('mainAddress').value;
-            const detailAddr = document.getElementById('detailAddress').value;
-
-            if (postcode) {
-                let fullAddress = `(${postcode}) ${mainAddr}`;
-                if (detailAddr) {
-                    fullAddress += `, ${detailAddr}`;
-                }
-                document.getElementById('fullAddress').value = fullAddress;
-            }
-        }
-
-        function execDaumPostcode() {
-            new daum.Postcode({
-                oncomplete: function(data) {
-                    var addr = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
-                    var extraAddr = '';
-
-                    if(data.userSelectedType === 'R'){
-                        if(data.bname !== '' && /[동|로|가]$/g.test(data.bname)){
-                            extraAddr += data.bname;
-                        }
-                        if(data.buildingName !== '' && data.apartment === 'Y'){
-                            extraAddr += (extraAddr !== '' ? ', ' + data.buildingName : data.buildingName);
-                        }
-                        if(extraAddr !== ''){
-                            extraAddr = ' (' + extraAddr + ')';
-                        }
-                    }
-
-                    document.getElementById('postcode').value = data.zonecode;
-                    document.getElementById("mainAddress").value = addr + extraAddr;
-
-                    const detailInput = document.getElementById("detailAddress");
-                    detailInput.readOnly = false;
-                    detailInput.value = '';
-                    detailInput.focus();
-
-                    updateFullAddress();
-                }
-            }).open();
-        }
-    </script>
 
 </th:block>
 </body>
