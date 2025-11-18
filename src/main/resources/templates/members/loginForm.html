@@ -30,7 +30,12 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100">로그인</button>
-                    <a th:href="@{/members/signup}" class="btn btn-outline-secondary w-100 mt-2">회원가입</a>
+                    <div class="d-grid gap-2 mt-3">
+                        <a th:href="@{/members/signup}" class="btn btn-outline-secondary">회원가입</a>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a th:href="@{/members/forgot-password}" class="text-decoration-none small text-muted">비밀번호를 잊으셨나요?</a>
+                    </div>
                 </form>
             </div>
         </div>

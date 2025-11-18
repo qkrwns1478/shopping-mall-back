@@ -130,4 +130,22 @@ public class MemberController {
         int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
     }
+
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordForm() {
+        return "members/forgotPassword";
+    }
+
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(@RequestParam String email,
+                                        @RequestParam String name,
+                                        Model model) {
+        try {
+            memberService.sendTemporaryPassword(email, name);
+            model.addAttribute("successMessage", "이메일로 임시 비밀번호를 발송했습니다.");
+        } catch (IllegalStateException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+        }
+        return "members/forgotPassword";
+    }
 }
