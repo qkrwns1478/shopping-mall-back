@@ -1,27 +1,47 @@
 package com.example.shoppingmall.service;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import java.io.UnsupportedEncodingException;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
+
     private final JavaMailSender mailSender;
+
+    @Value("${spring.mail.username}")
+    private String fromEmail;
+
+    @Value("${spring.mail.properties.mail.from.name}")
+    private String fromName;
+
     public void sendVerificationCode(String to, String code) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject("[MUNSIKSA] 회원가입 인증번호");
-        message.setText("인증번호는 [" + code + "] 입니다.");
-        mailSender.send(message);
+        sendEmail(to, "[MUNSIKSA] 회원가입 인증번호", "인증번호는 [" + code + "] 입니다.");
     }
 
     public void sendTemporaryPassword(String to, String tempPassword) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject("[MUNSIKSA] 임시 비밀번호 발급 안내");
-        message.setText("회원님의 임시 비밀번호는 [" + tempPassword + "] 입니다.\n로그인 후 반드시 비밀번호를 변경해주세요.");
-        mailSender.send(message);
+        sendEmail(to, "[MUNSIKSA] 임시 비밀번호 발급 안내", "회원님의 임시 비밀번호는 [" + tempPassword + "] 입니다.\n로그인 후 반드시 비밀번호를 변경해주세요.");
+    }
+
+    private void sendEmail(String to, String subject, String text) {
+        MimeMessage message = mailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(text, false);
+
+            mailSender.send(message);
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            throw new RuntimeException("이메일 발송에 실패했습니다.", e);
+        }
     }
 }
