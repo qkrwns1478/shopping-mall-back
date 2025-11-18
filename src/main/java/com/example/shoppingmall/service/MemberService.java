@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -23,6 +24,7 @@ public class MemberService implements UserDetailsService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     public Member saveMember(MemberFormDto memberFormDto) {
         if (!memberFormDto.getPassword().equals(memberFormDto.getPasswordConfirm())) {
@@ -47,6 +49,17 @@ public class MemberService implements UserDetailsService {
         if (findMember.isPresent()) {
             throw new IllegalStateException("이미 가입된 이메일입니다.");
         }
+    }
+
+    public void sendTemporaryPassword(String email, String name) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("가입되지 않은 이메일입니다."));
+        if (!member.getName().equals(name)) {
+            throw new IllegalStateException("이름이 일치하지 않습니다.");
+        }
+        String tempPassword = UUID.randomUUID().toString().substring(0, 8);
+        member.setPassword(passwordEncoder.encode(tempPassword));
+        emailService.sendTemporaryPassword(email, tempPassword);
     }
 
     @Transactional(readOnly = true)

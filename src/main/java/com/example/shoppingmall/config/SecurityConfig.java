@@ -23,6 +23,7 @@ public class SecurityConfig {
                                 "/members/send-verification-email",
                                 "/members/verify-code",
                                 "/members/login",
+                                "/members/forgot-password",
                                 "/css/**", "/js/**", "/assets/**"
                         ).permitAll()
                         .anyRequest().authenticated()
