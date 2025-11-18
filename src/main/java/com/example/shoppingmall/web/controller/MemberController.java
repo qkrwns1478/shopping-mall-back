@@ -1,16 +1,25 @@
 package com.example.shoppingmall.web.controller;
 
+import com.example.shoppingmall.domain.Member;
 import com.example.shoppingmall.service.EmailService;
 import com.example.shoppingmall.service.MemberService;
 import com.example.shoppingmall.web.dto.MemberFormDto;
+import com.example.shoppingmall.web.dto.MemberUpdateDto;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.security.Principal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import java.util.Map;
 import java.util.Random;
 
@@ -147,5 +156,117 @@ public class MemberController {
             model.addAttribute("errorMessage", e.getMessage());
         }
         return "members/forgotPassword";
+    }
+
+    @GetMapping("/mypage")
+    public String myPage(Model model, Principal principal, @RequestParam(required = false) String success) {
+        Member member = memberService.findMember(principal.getName());
+        model.addAttribute("member", member);
+
+        if (success != null) {
+            model.addAttribute("successMessage", "회원 정보가 성공적으로 수정되었습니다.");
+        }
+        return "members/myPage";
+    }
+
+    @GetMapping("/edit/check")
+    public String checkPasswordForm() {
+        return "members/checkPassword";
+    }
+
+    @PostMapping("/edit/check")
+    public String checkPassword(@RequestParam String password, Principal principal, HttpSession session, Model model) {
+        if (memberService.checkPassword(principal.getName(), password)) {
+            session.setAttribute("editAuth", true);
+            return "redirect:/members/edit/form";
+        } else {
+            model.addAttribute("errorMessage", "비밀번호가 일치하지 않습니다.");
+            return "members/checkPassword";
+        }
+    }
+
+    @GetMapping("/edit/form")
+    public String editForm(Model model, Principal principal, HttpSession session) {
+        if (session.getAttribute("editAuth") == null) {
+            return "redirect:/members/edit/check";
+        }
+
+        Member member = memberService.findMember(principal.getName());
+
+        MemberUpdateDto dto = new MemberUpdateDto();
+        dto.setName(member.getName());
+        dto.setAddress(member.getAddress());
+        dto.setBirthday(member.getBirthday());
+
+        model.addAttribute("memberUpdateDto", dto);
+        model.addAttribute("email", member.getEmail());
+
+        String fullAddr = member.getAddress();
+        if (fullAddr != null && !fullAddr.isBlank()) {
+            String mainPart = fullAddr;
+            String detailPart = "";
+            int splitIndex = -1;
+            int parenDepth = 0;
+            for (int i = 0; i < fullAddr.length() - 1; i++) {
+                char c = fullAddr.charAt(i);
+                if (c == '(') parenDepth++;
+                else if (c == ')') { if (parenDepth > 0) parenDepth--; }
+                else if (c == ',' && fullAddr.charAt(i + 1) == ' ' && parenDepth == 0) {
+                    splitIndex = i;
+                    break;
+                }
+            }
+            if (splitIndex != -1) {
+                mainPart = fullAddr.substring(0, splitIndex);
+                detailPart = fullAddr.substring(splitIndex + 2);
+            }
+
+            String postcode = "";
+            String roadAddress = mainPart;
+            if (mainPart.startsWith("(") && mainPart.indexOf(")") > 0) {
+                int closeParenIndex = mainPart.indexOf(")");
+                postcode = mainPart.substring(1, closeParenIndex);
+                roadAddress = mainPart.substring(closeParenIndex + 1).trim();
+            }
+
+            model.addAttribute("postcode", postcode);
+            model.addAttribute("mainAddress", roadAddress);
+            model.addAttribute("detailAddress", detailPart);
+        }
+
+        return "members/editProfile";
+    }
+
+    @PostMapping("/edit/update")
+    public String updateMember(@Valid MemberUpdateDto memberUpdateDto, BindingResult bindingResult, Principal principal, HttpSession session, Model model) {
+        if (session.getAttribute("editAuth") == null) {
+            return "redirect:/members/edit/check";
+        }
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("email", principal.getName());
+            return "members/editProfile";
+        }
+
+        try {
+            memberService.updateMember(principal.getName(), memberUpdateDto);
+            session.removeAttribute("editAuth");
+            return "redirect:/members/mypage?success=true";
+        } catch (IllegalStateException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("email", principal.getName());
+            return "members/editProfile";
+        }
+    }
+
+    @PostMapping("/withdraw")
+    public String withdraw(@RequestParam String password, Principal principal, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            memberService.deleteMember(principal.getName(), password);
+            new SecurityContextLogoutHandler().logout(request, response, SecurityContextHolder.getContext().getAuthentication());
+            return "redirect:/";
+        } catch (IllegalStateException e) {
+            return "redirect:/members/edit/form?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+        }
     }
 }

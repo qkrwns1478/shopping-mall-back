@@ -17,8 +17,8 @@ public class Member {
     @Column(name = "member_id")
     private Long id;
 
-//    @Column(unique = true, nullable = false, length = 50)
-//    private String username;
+    /* @Column(unique = true, nullable = false, length = 50)
+    private String username; */
 
     @Column(unique = true, nullable = false, length = 100)
     private String email;
@@ -37,6 +37,15 @@ public class Member {
     @Column(nullable = false)
     private MemberRole role;
 
+    public void updateMember(String name, String address, LocalDate birthday) {
+        this.name = name;
+        this.address = address;
+        this.birthday = birthday;
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
 
     public static Member createMember(String email, String password,
                                       String name, String address, LocalDate birthday) {
