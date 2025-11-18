@@ -159,7 +159,28 @@ public class MemberController {
     }
 
     @GetMapping("/mypage")
-    public String myPage(Model model, Principal principal, @RequestParam(required = false) String error) {
+    public String checkPasswordForm() {
+        return "members/checkPassword";
+    }
+
+    @PostMapping("/mypage/check")
+    public String checkPassword(@RequestParam String password, Principal principal, HttpSession session, Model model) {
+        if (memberService.checkPassword(principal.getName(), password)) {
+            session.setAttribute("mypageAuth", true);
+            return "redirect:/members/mypage/edit";
+        } else {
+            model.addAttribute("errorMessage", "비밀번호가 일치하지 않습니다.");
+            return "members/checkPassword";
+        }
+    }
+
+    @GetMapping("/mypage/edit")
+    public String myPageForm(Model model, Principal principal, HttpSession session, @RequestParam(required = false) String error) {
+        Boolean auth = (Boolean) session.getAttribute("mypageAuth");
+        if (auth == null || !auth) {
+            return "redirect:/members/mypage";
+        }
+
         Member member = memberService.findMember(principal.getName());
 
         MemberUpdateDto dto = new MemberUpdateDto();
@@ -171,39 +192,31 @@ public class MemberController {
         model.addAttribute("email", member.getEmail());
 
         String fullAddr = member.getAddress();
-        /* 괄호 안의 콤마는 무시하고 괄호 밖의 콤마를 기준으로 파싱해야 함 */
         if (fullAddr != null && !fullAddr.isBlank()) {
             String mainPart = fullAddr;
             String detailPart = "";
-
             int splitIndex = -1;
             int parenDepth = 0;
             for (int i = 0; i < fullAddr.length() - 1; i++) {
                 char c = fullAddr.charAt(i);
-                if (c == '(') {
-                    parenDepth++;
-                } else if (c == ')') {
-                    if (parenDepth > 0) parenDepth--;
-                } else if (c == ',' && fullAddr.charAt(i + 1) == ' ' && parenDepth == 0) {
+                if (c == '(') parenDepth++;
+                else if (c == ')') { if (parenDepth > 0) parenDepth--; }
+                else if (c == ',' && fullAddr.charAt(i + 1) == ' ' && parenDepth == 0) {
                     splitIndex = i;
                     break;
                 }
             }
-
             if (splitIndex != -1) {
                 mainPart = fullAddr.substring(0, splitIndex);
                 detailPart = fullAddr.substring(splitIndex + 2);
             }
-
             String postcode = "";
             String roadAddress = mainPart;
-
             if (mainPart.startsWith("(") && mainPart.contains(")")) {
                 int closeParenIndex = mainPart.indexOf(")");
                 postcode = mainPart.substring(1, closeParenIndex);
                 roadAddress = mainPart.substring(closeParenIndex + 1).trim();
             }
-
             model.addAttribute("postcode", postcode);
             model.addAttribute("mainAddress", roadAddress);
             model.addAttribute("detailAddress", detailPart);
@@ -217,21 +230,21 @@ public class MemberController {
     }
 
     @PostMapping("/mypage/update")
-    public String updateMember(@Valid MemberUpdateDto memberUpdateDto, BindingResult bindingResult, Principal principal, Model model) {
+    public String updateMember(@Valid MemberUpdateDto memberUpdateDto, BindingResult bindingResult, Principal principal, HttpSession session, Model model) {
+        Boolean auth = (Boolean) session.getAttribute("mypageAuth");
+        if (auth == null || !auth) {
+            return "redirect:/members/mypage";
+        }
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("email", principal.getName());
             return "members/myPage";
         }
+
         try {
             memberService.updateMember(principal.getName(), memberUpdateDto);
-            model.addAttribute("successMessage", "회원 정보가 수정되었습니다.");
-
-            model.addAttribute("email", principal.getName());
-            memberUpdateDto.setCurrentPassword("");
-            memberUpdateDto.setNewPassword("");
-            memberUpdateDto.setNewPasswordConfirm("");
-
-            return "members/myPage";
+            session.removeAttribute("mypageAuth");
+            return "redirect:/";
         } catch (IllegalStateException e) {
             model.addAttribute("errorMessage", e.getMessage());
             model.addAttribute("email", principal.getName());

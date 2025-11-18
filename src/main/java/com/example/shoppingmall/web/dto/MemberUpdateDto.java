@@ -18,8 +18,8 @@ public class MemberUpdateDto {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthday;
 
-    @NotBlank(message = "현재 비밀번호를 입력해주세요.")
-    private String currentPassword;
+    /* @NotBlank(message = "현재 비밀번호를 입력해주세요.")
+    private String currentPassword; */
 
     private String newPassword;
 

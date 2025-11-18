@@ -61,14 +61,6 @@
                                 <input type="password" id="newPasswordConfirm" class="form-control" th:field="*{newPasswordConfirm}" autocomplete="new-password" />
                             </div>
 
-                            <hr class="my-4">
-
-                            <div class="mb-3">
-                                <label for="currentPassword" class="form-label fw-bold">현재 비밀번호 (필수)</label>
-                                <input type="password" id="currentPassword" class="form-control" th:field="*{currentPassword}" required autocomplete="current-password" />
-                                <div class="form-text text-danger" th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}"></div>
-                            </div>
-
                             <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
                             <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
 

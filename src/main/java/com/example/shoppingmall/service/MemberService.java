@@ -87,13 +87,20 @@ public class MemberService implements UserDetailsService {
                 .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
     }
 
+    @Transactional(readOnly = true)
+    public boolean checkPassword(String email, String password) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
+        return passwordEncoder.matches(password, member.getPassword());
+    }
+
     public void updateMember(String email, MemberUpdateDto updateDto) {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
 
-        if (!passwordEncoder.matches(updateDto.getCurrentPassword(), member.getPassword())) {
+        /* if (!passwordEncoder.matches(updateDto.getCurrentPassword(), member.getPassword())) {
             throw new IllegalStateException("현재 비밀번호가 일치하지 않습니다.");
-        }
+        } */
 
         member.updateMember(updateDto.getName(), updateDto.getAddress(), updateDto.getBirthday());
 
