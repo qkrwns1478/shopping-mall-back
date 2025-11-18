@@ -3,6 +3,7 @@ package com.example.shoppingmall.service;
 import com.example.shoppingmall.domain.Member;
 import com.example.shoppingmall.repository.MemberRepository;
 import com.example.shoppingmall.web.dto.MemberFormDto;
+import com.example.shoppingmall.web.dto.MemberUpdateDto;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.core.userdetails.User;
@@ -78,5 +79,40 @@ public class MemberService implements UserDetailsService {
                 .password(member.getPassword())
                 .roles(member.getRole().toString())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public Member findMember(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
+    }
+
+    public void updateMember(String email, MemberUpdateDto updateDto) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
+
+        if (!passwordEncoder.matches(updateDto.getCurrentPassword(), member.getPassword())) {
+            throw new IllegalStateException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        member.updateMember(updateDto.getName(), updateDto.getAddress(), updateDto.getBirthday());
+
+        if (updateDto.getNewPassword() != null && !updateDto.getNewPassword().isBlank()) {
+            if (!updateDto.getNewPassword().equals(updateDto.getNewPasswordConfirm())) {
+                throw new IllegalStateException("새 비밀번호가 일치하지 않습니다.");
+            }
+            member.updatePassword(passwordEncoder.encode(updateDto.getNewPassword()));
+        }
+    }
+
+    public void deleteMember(String email, String password) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
+
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
+        }
+
+        memberRepository.delete(member);
     }
 }

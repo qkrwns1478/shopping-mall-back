@@ -1,16 +1,25 @@
 package com.example.shoppingmall.web.controller;
 
+import com.example.shoppingmall.domain.Member;
 import com.example.shoppingmall.service.EmailService;
 import com.example.shoppingmall.service.MemberService;
 import com.example.shoppingmall.web.dto.MemberFormDto;
+import com.example.shoppingmall.web.dto.MemberUpdateDto;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.security.Principal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import java.util.Map;
 import java.util.Random;
 
@@ -147,5 +156,98 @@ public class MemberController {
             model.addAttribute("errorMessage", e.getMessage());
         }
         return "members/forgotPassword";
+    }
+
+    @GetMapping("/mypage")
+    public String myPage(Model model, Principal principal, @RequestParam(required = false) String error) {
+        Member member = memberService.findMember(principal.getName());
+
+        MemberUpdateDto dto = new MemberUpdateDto();
+        dto.setName(member.getName());
+        dto.setAddress(member.getAddress());
+        dto.setBirthday(member.getBirthday());
+
+        model.addAttribute("memberUpdateDto", dto);
+        model.addAttribute("email", member.getEmail());
+
+        String fullAddr = member.getAddress();
+        /* 괄호 안의 콤마는 무시하고 괄호 밖의 콤마를 기준으로 파싱해야 함 */
+        if (fullAddr != null && !fullAddr.isBlank()) {
+            String mainPart = fullAddr;
+            String detailPart = "";
+
+            int splitIndex = -1;
+            int parenDepth = 0;
+            for (int i = 0; i < fullAddr.length() - 1; i++) {
+                char c = fullAddr.charAt(i);
+                if (c == '(') {
+                    parenDepth++;
+                } else if (c == ')') {
+                    if (parenDepth > 0) parenDepth--;
+                } else if (c == ',' && fullAddr.charAt(i + 1) == ' ' && parenDepth == 0) {
+                    splitIndex = i;
+                    break;
+                }
+            }
+
+            if (splitIndex != -1) {
+                mainPart = fullAddr.substring(0, splitIndex);
+                detailPart = fullAddr.substring(splitIndex + 2);
+            }
+
+            String postcode = "";
+            String roadAddress = mainPart;
+
+            if (mainPart.startsWith("(") && mainPart.contains(")")) {
+                int closeParenIndex = mainPart.indexOf(")");
+                postcode = mainPart.substring(1, closeParenIndex);
+                roadAddress = mainPart.substring(closeParenIndex + 1).trim();
+            }
+
+            model.addAttribute("postcode", postcode);
+            model.addAttribute("mainAddress", roadAddress);
+            model.addAttribute("detailAddress", detailPart);
+        }
+
+        if (error != null) {
+            model.addAttribute("errorMessage", error);
+        }
+
+        return "members/myPage";
+    }
+
+    @PostMapping("/mypage/update")
+    public String updateMember(@Valid MemberUpdateDto memberUpdateDto, BindingResult bindingResult, Principal principal, Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("email", principal.getName());
+            return "members/myPage";
+        }
+        try {
+            memberService.updateMember(principal.getName(), memberUpdateDto);
+            model.addAttribute("successMessage", "회원 정보가 수정되었습니다.");
+
+            model.addAttribute("email", principal.getName());
+            memberUpdateDto.setCurrentPassword("");
+            memberUpdateDto.setNewPassword("");
+            memberUpdateDto.setNewPasswordConfirm("");
+
+            return "members/myPage";
+        } catch (IllegalStateException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("email", principal.getName());
+            return "members/myPage";
+        }
+    }
+
+    @PostMapping("/mypage/delete")
+    public String deleteMember(@RequestParam String password, Principal principal, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            memberService.deleteMember(principal.getName(), password);
+            new SecurityContextLogoutHandler().logout(request, response, SecurityContextHolder.getContext().getAuthentication());
+            return "redirect:/";
+        } catch (IllegalStateException e) {
+            String encodedMsg = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+            return "redirect:/members/mypage?error=" + encodedMsg;
+        }
     }
 }
