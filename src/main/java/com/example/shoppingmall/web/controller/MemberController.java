@@ -31,12 +31,6 @@ public class MemberController {
     private final MemberService memberService;
     private final EmailService emailService;
 
-    @GetMapping("/signup")
-    public String showSignUpForm(Model model) {
-        model.addAttribute("memberFormDto", new MemberFormDto());
-        return "members/signupForm";
-    }
-
     @PostMapping("/signup")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> processSignUp(
@@ -60,11 +54,6 @@ public class MemberController {
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
-    }
-
-    @GetMapping("/signup-success")
-    public String showSignUpSuccess() {
-        return "members/signupSuccess";
     }
 
     @PostMapping("/send-verification-email")
@@ -105,11 +94,6 @@ public class MemberController {
         return ResponseEntity.ok(Map.of("verified", true));
     }
 
-    @GetMapping("/login")
-    public String showLoginForm() {
-        return "members/loginForm";
-    }
-
     @GetMapping("/info")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getUserInfo(Principal principal) {
@@ -130,11 +114,6 @@ public class MemberController {
         Random random = new Random();
         int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
-    }
-
-    @GetMapping("/forgot-password")
-    public String showForgotPasswordForm() {
-        return "members/forgotPassword";
     }
 
     @PostMapping("/forgot-password")
