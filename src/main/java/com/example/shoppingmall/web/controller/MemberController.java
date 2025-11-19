@@ -110,6 +110,22 @@ public class MemberController {
         return "members/loginForm";
     }
 
+    @GetMapping("/info")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getUserInfo(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("authenticated", false));
+        }
+
+        Member member = memberService.findMember(principal.getName());
+        return ResponseEntity.ok(Map.of(
+                "authenticated", true,
+                "name", member.getName(),
+                "email", member.getEmail(),
+                "role", member.getRole()
+        ));
+    }
+
     private String createVerificationCode() {
         Random random = new Random();
         int code = 100000 + random.nextInt(900000);
