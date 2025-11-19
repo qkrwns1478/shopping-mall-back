@@ -10,9 +10,9 @@ import jakarta.validation.Valid;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.security.Principal;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -36,34 +37,6 @@ public class MemberController {
         return "members/signupForm";
     }
 
-    /* @PostMapping("/signup")
-    public String processSignUp(
-            @Valid MemberFormDto memberFormDto,
-            BindingResult bindingResult,
-            Model model,
-            HttpSession session
-    ) {
-        if (bindingResult.hasErrors()) {
-            return "members/signupForm";
-        }
-
-        String verifiedEmail = (String) session.getAttribute("verifiedEmail");
-        if (!memberFormDto.getEmail().equals(verifiedEmail)) {
-            bindingResult.rejectValue("email", "email.unverified", "이메일 인증이 완료되지 않았습니다.");
-            return "members/signupForm";
-        }
-
-        try {
-            memberService.saveMember(memberFormDto);
-            session.removeAttribute("verifiedEmail");
-        } catch (IllegalStateException e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            return "members/signupForm";
-        }
-
-        return "redirect:/members/signup-success";
-    } */
-
     @PostMapping("/signup")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> processSignUp(
@@ -72,18 +45,18 @@ public class MemberController {
             HttpSession session
     ) {
         if (bindingResult.hasErrors()) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "errors", bindingResult.getAllErrors()));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "입력 값을 확인해주세요.", "errors", bindingResult.getAllErrors()));
         }
 
         String verifiedEmail = (String) session.getAttribute("verifiedEmail");
         if (!memberFormDto.getEmail().equals(verifiedEmail)) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "이메일 인증이 필요합니다."));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "이메일 인증이 완료되지 않았습니다."));
         }
 
         try {
             memberService.saveMember(memberFormDto);
             session.removeAttribute("verifiedEmail");
-            return ResponseEntity.ok(Map.of("success", true, "message", "회원가입 성공"));
+            return ResponseEntity.ok(Map.of("success", true));
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
@@ -94,28 +67,14 @@ public class MemberController {
         return "members/signupSuccess";
     }
 
-    /* @GetMapping("/check-email")
-    @ResponseBody
-    public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam String email) {
-        if (email.isBlank()) {
-            return ResponseEntity.ok(Map.of("available", false, "invalid", true));
-        }
-        boolean isAvailable = memberService.checkEmailAvailability(email);
-        return ResponseEntity.ok(Map.of("available", isAvailable));
-    } */
-
     @PostMapping("/send-verification-email")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> sendVerificationEmail(
-            @RequestParam String email,
-            HttpSession session
-    ) {
+    public ResponseEntity<Map<String, Object>> sendVerificationEmail(@RequestParam String email, HttpSession session) {
         if (!memberService.checkEmailAvailability(email)) {
             return ResponseEntity.ok(Map.of("success", false, "message", "이미 사용 중인 이메일입니다."));
         }
 
         String code = createVerificationCode();
-
         try {
             emailService.sendVerificationCode(email, code);
         } catch (Exception e) {
@@ -124,18 +83,14 @@ public class MemberController {
 
         session.setAttribute("verificationCode", code);
         session.setAttribute("verificationEmailRequest", email);
-        session.setMaxInactiveInterval(300); // 5분
+        session.setMaxInactiveInterval(300);
 
         return ResponseEntity.ok(Map.of("success", true, "message", "인증번호가 발송되었습니다."));
     }
 
     @PostMapping("/verify-code")
     @ResponseBody
-    public ResponseEntity<Map<String, Boolean>> verifyCode(
-            @RequestParam String email,
-            @RequestParam String code,
-            HttpSession session
-    ) {
+    public ResponseEntity<Map<String, Boolean>> verifyCode(@RequestParam String email, @RequestParam String code, HttpSession session) {
         String sessionCode = (String) session.getAttribute("verificationCode");
         String sessionEmail = (String) session.getAttribute("verificationEmailRequest");
 
@@ -151,11 +106,7 @@ public class MemberController {
     }
 
     @GetMapping("/login")
-    public String showLoginForm(Model model, @RequestParam(value = "error", required = false) String error) {
-        if (error != null) {
-            model.addAttribute("loginErrorMsg", "이메일 또는 비밀번호를 확인해주세요.");
-        }
-
+    public String showLoginForm() {
         return "members/loginForm";
     }
 
@@ -171,62 +122,61 @@ public class MemberController {
     }
 
     @PostMapping("/forgot-password")
-    public String processForgotPassword(@RequestParam String email,
-                                        @RequestParam String name,
-                                        Model model) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> processForgotPassword(@RequestParam String email, @RequestParam String name) {
         try {
             memberService.sendTemporaryPassword(email, name);
-            model.addAttribute("successMessage", "이메일로 임시 비밀번호를 발송했습니다.");
+            return ResponseEntity.ok(Map.of("success", true, "message", "이메일로 임시 비밀번호를 발송했습니다."));
         } catch (IllegalStateException e) {
-            model.addAttribute("errorMessage", e.getMessage());
+            return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
-        return "members/forgotPassword";
     }
 
     @GetMapping("/mypage")
-    public String myPage(Model model, Principal principal, @RequestParam(required = false) String success) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> myPage(Principal principal) {
         Member member = memberService.findMember(principal.getName());
-        model.addAttribute("member", member);
 
-        if (success != null) {
-            model.addAttribute("successMessage", "회원 정보가 성공적으로 수정되었습니다.");
-        }
-        return "members/myPage";
-    }
+        Map<String, Object> response = new HashMap<>();
+        response.put("name", member.getName());
+        response.put("email", member.getEmail());
+        response.put("address", member.getAddress());
+        response.put("birthday", member.getBirthday());
 
-    @GetMapping("/edit/check")
-    public String checkPasswordForm() {
-        return "members/checkPassword";
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/edit/check")
-    public String checkPassword(@RequestParam String password, Principal principal, HttpSession session, Model model) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkPassword(@RequestBody Map<String, String> request, Principal principal, HttpSession session) {
+        String password = request.get("password");
         if (memberService.checkPassword(principal.getName(), password)) {
             session.setAttribute("editAuth", true);
-            return "redirect:/members/edit/form";
+            return ResponseEntity.ok(Map.of("success", true));
         } else {
-            model.addAttribute("errorMessage", "비밀번호가 일치하지 않습니다.");
-            return "members/checkPassword";
+            return ResponseEntity.ok(Map.of("success", false, "message", "비밀번호가 일치하지 않습니다."));
         }
     }
 
     @GetMapping("/edit/form")
-    public String editForm(Model model, Principal principal, HttpSession session) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> editForm(Principal principal, HttpSession session) {
         if (session.getAttribute("editAuth") == null) {
-            return "redirect:/members/edit/check";
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "auth_required", "message", "비밀번호 확인이 필요합니다."));
         }
 
         Member member = memberService.findMember(principal.getName());
 
-        MemberUpdateDto dto = new MemberUpdateDto();
-        dto.setName(member.getName());
-        dto.setAddress(member.getAddress());
-        dto.setBirthday(member.getBirthday());
-
-        model.addAttribute("memberUpdateDto", dto);
-        model.addAttribute("email", member.getEmail());
+        Map<String, Object> response = new HashMap<>();
+        response.put("name", member.getName());
+        response.put("email", member.getEmail());
+        response.put("birthday", member.getBirthday());
 
         String fullAddr = member.getAddress();
+        String postcode = "";
+        String mainAddress = "";
+        String detailAddress = "";
+
         if (fullAddr != null && !fullAddr.isBlank()) {
             String mainPart = fullAddr;
             String detailPart = "";
@@ -246,52 +196,62 @@ public class MemberController {
                 detailPart = fullAddr.substring(splitIndex + 2);
             }
 
-            String postcode = "";
-            String roadAddress = mainPart;
+            mainAddress = mainPart;
             if (mainPart.startsWith("(") && mainPart.indexOf(")") > 0) {
                 int closeParenIndex = mainPart.indexOf(")");
                 postcode = mainPart.substring(1, closeParenIndex);
-                roadAddress = mainPart.substring(closeParenIndex + 1).trim();
+                mainAddress = mainPart.substring(closeParenIndex + 1).trim();
             }
-
-            model.addAttribute("postcode", postcode);
-            model.addAttribute("mainAddress", roadAddress);
-            model.addAttribute("detailAddress", detailPart);
+            detailAddress = detailPart;
         }
 
-        return "members/editProfile";
+        response.put("postcode", postcode);
+        response.put("mainAddress", mainAddress);
+        response.put("detailAddress", detailAddress);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/edit/update")
-    public String updateMember(@Valid MemberUpdateDto memberUpdateDto, BindingResult bindingResult, Principal principal, HttpSession session, Model model) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateMember(
+            @RequestBody @Valid MemberUpdateDto memberUpdateDto,
+            BindingResult bindingResult,
+            Principal principal,
+            HttpSession session
+    ) {
         if (session.getAttribute("editAuth") == null) {
-            return "redirect:/members/edit/check";
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "수정 권한이 없습니다. 비밀번호를 다시 확인해주세요."));
         }
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("email", principal.getName());
-            return "members/editProfile";
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "입력 값을 확인해주세요.", "errors", bindingResult.getAllErrors()));
         }
 
         try {
             memberService.updateMember(principal.getName(), memberUpdateDto);
             session.removeAttribute("editAuth");
-            return "redirect:/members/mypage?success=true";
+            return ResponseEntity.ok(Map.of("success", true));
         } catch (IllegalStateException e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            model.addAttribute("email", principal.getName());
-            return "members/editProfile";
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
     @PostMapping("/withdraw")
-    public String withdraw(@RequestParam String password, Principal principal, HttpServletRequest request, HttpServletResponse response) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> withdraw(
+            @RequestBody Map<String, String> request,
+            Principal principal,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse
+    ) {
+        String password = request.get("password");
         try {
             memberService.deleteMember(principal.getName(), password);
-            new SecurityContextLogoutHandler().logout(request, response, SecurityContextHolder.getContext().getAuthentication());
-            return "redirect:/";
+            new SecurityContextLogoutHandler().logout(httpRequest, httpResponse, SecurityContextHolder.getContext().getAuthentication());
+            return ResponseEntity.ok(Map.of("success", true));
         } catch (IllegalStateException e) {
-            return "redirect:/members/edit/form?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+            return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
     }
 }
