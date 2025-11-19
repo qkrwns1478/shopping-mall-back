@@ -36,7 +36,7 @@ public class MemberController {
         return "members/signupForm";
     }
 
-    @PostMapping("/signup")
+    /* @PostMapping("/signup")
     public String processSignUp(
             @Valid MemberFormDto memberFormDto,
             BindingResult bindingResult,
@@ -62,6 +62,31 @@ public class MemberController {
         }
 
         return "redirect:/members/signup-success";
+    } */
+
+    @PostMapping("/signup")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> processSignUp(
+            @RequestBody @Valid MemberFormDto memberFormDto,
+            BindingResult bindingResult,
+            HttpSession session
+    ) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "errors", bindingResult.getAllErrors()));
+        }
+
+        String verifiedEmail = (String) session.getAttribute("verifiedEmail");
+        if (!memberFormDto.getEmail().equals(verifiedEmail)) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "이메일 인증이 필요합니다."));
+        }
+
+        try {
+            memberService.saveMember(memberFormDto);
+            session.removeAttribute("verifiedEmail");
+            return ResponseEntity.ok(Map.of("success", true, "message", "회원가입 성공"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
     }
 
     @GetMapping("/signup-success")
