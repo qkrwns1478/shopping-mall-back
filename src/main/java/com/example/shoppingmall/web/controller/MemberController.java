@@ -5,6 +5,8 @@ import com.example.shoppingmall.service.EmailService;
 import com.example.shoppingmall.service.MemberService;
 import com.example.shoppingmall.web.dto.MemberFormDto;
 import com.example.shoppingmall.web.dto.MemberUpdateDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +16,6 @@ import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+@Tag(name = "회원(Member)", description = "회원 가입, 로그인, 정보 수정 등 회원 관련 API")
 @Controller
 @RequestMapping("/members")
 @RequiredArgsConstructor
@@ -31,6 +33,7 @@ public class MemberController {
     private final MemberService memberService;
     private final EmailService emailService;
 
+    @Operation(summary = "회원 가입", description = "회원 정보를 입력받아 새로운 회원을 등록합니다.")
     @PostMapping("/signup")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> processSignUp(
@@ -56,6 +59,7 @@ public class MemberController {
         }
     }
 
+    @Operation(summary = "인증 이메일 발송", description = "입력한 이메일로 회원가입 인증 코드를 발송합니다.")
     @PostMapping("/send-verification-email")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> sendVerificationEmail(@RequestParam String email, HttpSession session) {
@@ -77,6 +81,7 @@ public class MemberController {
         return ResponseEntity.ok(Map.of("success", true, "message", "인증번호가 발송되었습니다."));
     }
 
+    @Operation(summary = "이메일 인증번호 확인", description = "발송된 인증번호와 입력한 코드가 일치하는지 확인합니다.")
     @PostMapping("/verify-code")
     @ResponseBody
     public ResponseEntity<Map<String, Boolean>> verifyCode(@RequestParam String email, @RequestParam String code, HttpSession session) {
@@ -94,6 +99,7 @@ public class MemberController {
         return ResponseEntity.ok(Map.of("verified", true));
     }
 
+    @Operation(summary = "로그인 정보 조회", description = "현재 로그인된 사용자의 정보를 조회합니다.")
     @GetMapping("/info")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getUserInfo(Principal principal) {
@@ -116,6 +122,7 @@ public class MemberController {
         return String.valueOf(code);
     }
 
+    @Operation(summary = "비밀번호 찾기", description = "이메일과 이름을 확인하여 임시 비밀번호를 발송합니다.")
     @PostMapping("/forgot-password")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> processForgotPassword(@RequestParam String email, @RequestParam String name) {
@@ -127,6 +134,7 @@ public class MemberController {
         }
     }
 
+    @Operation(summary = "마이페이지 정보 조회", description = "마이페이지에 표시할 회원 정보를 조회합니다.")
     @GetMapping("/mypage")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> myPage(Principal principal) {
@@ -141,6 +149,7 @@ public class MemberController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "비밀번호 확인", description = "정보 수정을 위해 현재 비밀번호를 확인합니다.")
     @PostMapping("/edit/check")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> checkPassword(@RequestBody Map<String, String> request, Principal principal, HttpSession session) {
@@ -153,6 +162,7 @@ public class MemberController {
         }
     }
 
+    @Operation(summary = "회원 정보 수정 폼", description = "회원 정보 수정 페이지 진입 시 필요한 정보를 반환합니다.")
     @GetMapping("/edit/form")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> editForm(Principal principal, HttpSession session) {
@@ -207,6 +217,7 @@ public class MemberController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "회원 정보 수정", description = "변경된 회원 정보를 저장합니다.")
     @PostMapping("/edit/update")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateMember(
@@ -232,6 +243,7 @@ public class MemberController {
         }
     }
 
+    @Operation(summary = "회원 탈퇴", description = "비밀번호 확인 후 회원 탈퇴를 처리합니다.")
     @PostMapping("/withdraw")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> withdraw(
