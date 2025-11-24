@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter @Setter
 public class ItemFormDto {
@@ -15,11 +16,14 @@ public class ItemFormDto {
     @NotNull(message = "가격은 필수 입력 값입니다.")
     private Integer price;
 
-    @NotBlank(message = "이름은 필수 입력 값입니다.")
+    @NotBlank(message = "상품 상세 설명은 필수 입력 값입니다.")
     private String itemDetail;
 
     @NotNull(message = "재고는 필수 입력 값입니다.")
     private Integer stockNumber;
 
     private ItemSellStatus itemSellStatus;
+
+    private String imgUrl;
+    private MultipartFile itemImgFile;
 }

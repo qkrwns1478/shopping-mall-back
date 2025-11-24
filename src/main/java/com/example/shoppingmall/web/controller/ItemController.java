@@ -14,11 +14,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Tag(name = "상품(Item)", description = "상품 등록, 수정, 삭제 및 조회 API")
 @Controller
@@ -31,17 +32,32 @@ public class ItemController {
     @Operation(summary = "상품 등록", description = "새로운 상품을 등록합니다.")
     @PostMapping("/new")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> itemNew(@RequestBody @Valid ItemFormDto itemFormDto, BindingResult bindingResult){
-
-        if(bindingResult.hasErrors()){
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "상품 정보를 올바르게 입력해주세요.", "errors", bindingResult.getAllErrors()));
+    public ResponseEntity<Map<String, Object>> itemNew(
+            @Valid ItemFormDto itemFormDto,
+            BindingResult bindingResult,
+            @RequestParam(value = "itemImgFile", required = false) MultipartFile itemImgFile
+    ) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder sb = new StringBuilder();
+            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                sb.append(fieldError.getField())
+                        .append(": ")
+                        .append(fieldError.getDefaultMessage())
+                        .append(", ");
+            }
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "입력 값을 확인해주세요: " + sb.toString(),
+                    "errors", bindingResult.getAllErrors()
+            ));
         }
 
         try {
-            itemService.saveItem(itemFormDto);
+            itemService.saveItem(itemFormDto, itemImgFile);
             return ResponseEntity.ok(Map.of("success", true, "message", "상품이 성공적으로 등록되었습니다."));
-        } catch (Exception e){
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "상품 등록 중 에러가 발생하였습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "상품 등록 중 에러가 발생하였습니다: " + e.getMessage()));
         }
     }
 
@@ -75,16 +91,34 @@ public class ItemController {
     @Operation(summary = "상품 수정", description = "기존 상품의 정보를 수정합니다.")
     @PostMapping("/{itemId}")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> itemUpdate(@PathVariable("itemId") Long itemId, @RequestBody @Valid ItemFormDto itemFormDto, BindingResult bindingResult) {
+    public ResponseEntity<Map<String, Object>> itemUpdate(
+            @PathVariable("itemId") Long itemId,
+            @Valid ItemFormDto itemFormDto,
+            BindingResult bindingResult,
+            @RequestParam(value = "itemImgFile", required = false) MultipartFile itemImgFile,
+            @RequestParam(value = "deleteImage", required = false, defaultValue = "false") boolean deleteImage
+    ) {
         if (bindingResult.hasErrors()) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "상품 정보를 올바르게 입력해주세요.", "errors", bindingResult.getAllErrors()));
+            StringBuilder sb = new StringBuilder();
+            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+            for (FieldError fieldError : fieldErrors) {
+                sb.append(fieldError.getField())
+                        .append(": ")
+                        .append(fieldError.getDefaultMessage())
+                        .append(", ");
+            }
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "입력 값을 확인해주세요: " + sb.toString(),
+                    "errors", bindingResult.getAllErrors()
+            ));
         }
 
         try {
-            itemService.updateItem(itemId, itemFormDto);
+            itemService.updateItem(itemId, itemFormDto, itemImgFile, deleteImage);
             return ResponseEntity.ok(Map.of("success", true, "message", "상품이 성공적으로 수정되었습니다."));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "상품 수정 중 에러가 발생하였습니다."));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "상품 수정 중 에러가 발생하였습니다: " + e.getMessage()));
         }
     }
 
@@ -96,7 +130,7 @@ public class ItemController {
             itemService.deleteItem(itemId);
             return ResponseEntity.ok(Map.of("success", true, "message", "상품이 삭제되었습니다."));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "상품 삭제 중 에러가 발생하였습니다."));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "상품 삭제 중 에러가 발생하였습니다: " + e.getMessage()));
         }
     }
 }
