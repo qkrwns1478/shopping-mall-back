@@ -25,6 +25,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers(
                                 "/", "/members/signup",
                                 "/members/signup-success",
