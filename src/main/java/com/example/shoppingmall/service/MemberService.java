@@ -1,11 +1,15 @@
 package com.example.shoppingmall.service;
 
 import com.example.shoppingmall.domain.Member;
+import com.example.shoppingmall.domain.MemberRole;
 import com.example.shoppingmall.repository.MemberRepository;
 import com.example.shoppingmall.web.dto.MemberFormDto;
 import com.example.shoppingmall.web.dto.MemberUpdateDto;
+import com.example.shoppingmall.web.dto.MemberManageDto;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -98,10 +102,6 @@ public class MemberService implements UserDetailsService {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
 
-        /* if (!passwordEncoder.matches(updateDto.getCurrentPassword(), member.getPassword())) {
-            throw new IllegalStateException("현재 비밀번호가 일치하지 않습니다.");
-        } */
-
         member.updateMember(updateDto.getName(), updateDto.getAddress(), updateDto.getBirthday());
 
         if (updateDto.getNewPassword() != null && !updateDto.getNewPassword().isBlank()) {
@@ -121,5 +121,22 @@ public class MemberService implements UserDetailsService {
         }
 
         memberRepository.delete(member);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<MemberManageDto> getAdminMemberPage(Pageable pageable) {
+        return memberRepository.findAll(pageable).map(MemberManageDto::new);
+    }
+
+    public void deleteMember(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
+        memberRepository.delete(member);
+    }
+
+    public void updateMemberRole(Long memberId, MemberRole role) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
+        member.setRole(role);
     }
 }
