@@ -5,7 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter @Setter
 public class ItemFormDto {
@@ -24,6 +26,5 @@ public class ItemFormDto {
 
     private ItemSellStatus itemSellStatus;
 
-    private String imgUrl;
-    private MultipartFile itemImgFile;
+    private List<String> imgUrlList = new ArrayList<>();
 }

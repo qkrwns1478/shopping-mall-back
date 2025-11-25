@@ -11,7 +11,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Transactional
@@ -24,38 +26,29 @@ public class ItemService {
     @Value("${itemImgLocation}")
     private String itemImgLocation;
 
-    public Long saveItem(ItemFormDto itemFormDto, MultipartFile itemImgFile) throws Exception {
+    public String uploadImage(MultipartFile file) throws Exception {
+        String oriImgName = file.getOriginalFilename();
+        String imgName = fileService.uploadFile(itemImgLocation, oriImgName, file.getBytes());
+        return "/images/" + imgName;
+    }
+
+    public Long saveItem(ItemFormDto itemFormDto) {
         Item item = Item.createItem(itemFormDto);
-
-        if(itemImgFile != null && !itemImgFile.isEmpty()){
-            String oriImgName = itemImgFile.getOriginalFilename();
-            if(!StringUtils.isEmpty(oriImgName)){
-                String imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes());
-                item.setImgUrl("/images/" + imgName);
-            }
-        }
-
         itemRepository.save(item);
         return item.getId();
     }
 
-    public Long updateItem(Long itemId, ItemFormDto itemFormDto, MultipartFile itemImgFile, boolean deleteImage) throws Exception {
+    public Long updateItem(Long itemId, ItemFormDto itemFormDto) throws Exception {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(EntityNotFoundException::new);
 
-        if (deleteImage || (itemImgFile != null && !itemImgFile.isEmpty())) {
-            if (!StringUtils.isEmpty(item.getImgUrl())) {
-                String savedFileName = item.getImgUrl().replace("/images/", "");
-                fileService.deleteFile(itemImgLocation + "/" + savedFileName);
-                item.setImgUrl(null);
-            }
-        }
+        List<String> oldUrls = new ArrayList<>(item.getImgUrlList());
+        List<String> newUrls = itemFormDto.getImgUrlList();
 
-        if (itemImgFile != null && !itemImgFile.isEmpty()) {
-            String oriImgName = itemImgFile.getOriginalFilename();
-            if (!StringUtils.isEmpty(oriImgName)) {
-                String imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes());
-                item.setImgUrl("/images/" + imgName);
+        for (String oldUrl : oldUrls) {
+            if (!newUrls.contains(oldUrl)) {
+                String savedFileName = oldUrl.replace("/images/", "");
+                fileService.deleteFile(itemImgLocation + "/" + savedFileName);
             }
         }
 
@@ -72,7 +65,7 @@ public class ItemService {
         itemFormDto.setStockNumber(item.getStockNumber());
         itemFormDto.setItemDetail(item.getItemDetail());
         itemFormDto.setItemSellStatus(item.getItemSellStatus());
-        itemFormDto.setImgUrl(item.getImgUrl());
+        itemFormDto.setImgUrlList(item.getImgUrlList());
         return itemFormDto;
     }
 
@@ -82,11 +75,10 @@ public class ItemService {
     }
 
     public void deleteItem(Long itemId) throws Exception {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(EntityNotFoundException::new);
+        Item item = itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new);
 
-        if (!StringUtils.isEmpty(item.getImgUrl())) {
-            String savedFileName = item.getImgUrl().replace("/images/", "");
+        for (String imgUrl : item.getImgUrlList()) {
+            String savedFileName = imgUrl.replace("/images/", "");
             fileService.deleteFile(itemImgLocation + "/" + savedFileName);
         }
 

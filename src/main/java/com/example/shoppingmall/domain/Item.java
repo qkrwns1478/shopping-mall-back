@@ -8,6 +8,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name="item")
@@ -36,7 +38,10 @@ public class Item {
     @Enumerated(EnumType.STRING)
     private ItemSellStatus itemSellStatus;
 
-    private String imgUrl;
+    @ElementCollection
+    @CollectionTable(name = "item_images", joinColumns = @JoinColumn(name = "item_id"))
+    @Column(name = "img_url")
+    private List<String> imgUrlList = new ArrayList<>();
 
     private LocalDateTime regTime;
     private LocalDateTime updateTime;
@@ -48,6 +53,7 @@ public class Item {
         item.setStockNumber(itemFormDto.getStockNumber());
         item.setItemDetail(itemFormDto.getItemDetail());
         item.setItemSellStatus(itemFormDto.getItemSellStatus());
+        item.setImgUrlList(itemFormDto.getImgUrlList());
         item.setRegTime(LocalDateTime.now());
         item.setUpdateTime(LocalDateTime.now());
         return item;
@@ -59,6 +65,7 @@ public class Item {
         this.stockNumber = itemFormDto.getStockNumber();
         this.itemDetail = itemFormDto.getItemDetail();
         this.itemSellStatus = itemFormDto.getItemSellStatus();
+        this.imgUrlList = itemFormDto.getImgUrlList();
         this.updateTime = LocalDateTime.now();
     }
 }
