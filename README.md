@@ -1,0 +1,13 @@
+## Environment Vairables `.env`
+```
+DB_USERNAME=
+DB_PASSWORD=
+
+EMAIL_USERNAME=
+EMAIL_APP_PASSWORD=
+
+JWT_SECRET=
+
+ITEM_IMG_PATH=
+UPLOAD_PATH=
+```
