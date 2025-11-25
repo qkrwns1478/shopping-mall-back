@@ -26,6 +26,16 @@ public class EmailService {
         sendEmail(to, "[MUNSIKSA] 회원가입 인증번호", "인증번호는 [" + code + "] 입니다.");
     }
 
+    public void sendRoleVerificationCode(String to, String code, String targetEmail, String targetName, String currentRole, String newRole) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("아래 계정에 대한 권한 변경 요청이 발생했습니다.\n");
+        sb.append("계정: ").append(targetEmail).append(" (").append(targetName).append(") ");
+        sb.append(currentRole).append(" -> ").append(newRole).append("\n");
+        sb.append("인증번호: ").append(code);
+
+        sendEmail(to, "[MUNSIKSA] 권한 변경 요청 알림", sb.toString());
+    }
+
     public void sendTemporaryPassword(String to, String tempPassword) {
         sendEmail(to, "[MUNSIKSA] 임시 비밀번호 발급 안내", "회원님의 임시 비밀번호는 [" + tempPassword + "] 입니다.\n로그인 후 반드시 비밀번호를 변경해주세요.");
     }
