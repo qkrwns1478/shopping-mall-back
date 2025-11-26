@@ -27,4 +27,20 @@ public class ItemFormDto {
     private ItemSellStatus itemSellStatus;
 
     private List<String> imgUrlList = new ArrayList<>();
+
+    @NotBlank(message = "카테고리는 필수 입력 값입니다.")
+    private String category;
+
+    private List<String> options = new ArrayList<>();
+
+    private boolean isDiscount;
+
+    private int discountRate;
+
+    private String brand;
+
+    @NotNull(message = "배송비는 필수 입력 값입니다. (무료배송인 경우 0)")
+    private Integer deliveryFee;
+
+    private String origin;
 }
