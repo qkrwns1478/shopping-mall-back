@@ -28,8 +28,8 @@ public class ItemFormDto {
 
     private List<String> imgUrlList = new ArrayList<>();
 
-    @NotBlank(message = "카테고리는 필수 입력 값입니다.")
-    private String category;
+    @NotNull(message = "카테고리는 필수 선택 값입니다.")
+    private Long categoryId;
 
     private List<String> options = new ArrayList<>();
 

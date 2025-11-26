@@ -1,6 +1,8 @@
 package com.example.shoppingmall.service;
 
+import com.example.shoppingmall.domain.Category;
 import com.example.shoppingmall.domain.Item;
+import com.example.shoppingmall.repository.CategoryRepository;
 import com.example.shoppingmall.repository.ItemRepository;
 import com.example.shoppingmall.web.dto.ItemFormDto;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,6 +23,7 @@ import java.util.List;
 public class ItemService {
 
     private final ItemRepository itemRepository;
+    private final CategoryRepository categoryRepository;
     private final FileService fileService;
 
     @Value("${itemImgLocation}")
@@ -33,7 +36,10 @@ public class ItemService {
     }
 
     public Long saveItem(ItemFormDto itemFormDto) {
-        Item item = Item.createItem(itemFormDto);
+        Category category = categoryRepository.findById(itemFormDto.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 카테고리입니다."));
+
+        Item item = Item.createItem(itemFormDto, category);
         itemRepository.save(item);
         return item.getId();
     }
@@ -41,6 +47,9 @@ public class ItemService {
     public Long updateItem(Long itemId, ItemFormDto itemFormDto) throws Exception {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(EntityNotFoundException::new);
+
+        Category category = categoryRepository.findById(itemFormDto.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 카테고리입니다."));
 
         List<String> oldUrls = new ArrayList<>(item.getImgUrlList());
         List<String> newUrls = itemFormDto.getImgUrlList();
@@ -52,7 +61,7 @@ public class ItemService {
             }
         }
 
-        item.updateItem(itemFormDto);
+        item.updateItem(itemFormDto, category);
         return item.getId();
     }
 
@@ -66,6 +75,9 @@ public class ItemService {
         itemFormDto.setItemDetail(item.getItemDetail());
         itemFormDto.setItemSellStatus(item.getItemSellStatus());
         itemFormDto.setImgUrlList(item.getImgUrlList());
+        if (item.getCategory() != null) {
+            itemFormDto.setCategoryId(item.getCategory().getId());
+        }
         return itemFormDto;
     }
 
