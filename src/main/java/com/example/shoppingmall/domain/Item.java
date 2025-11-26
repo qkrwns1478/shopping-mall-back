@@ -2,6 +2,7 @@ package com.example.shoppingmall.domain;
 
 import com.example.shoppingmall.constant.ItemSellStatus;
 import com.example.shoppingmall.web.dto.ItemFormDto;
+import com.example.shoppingmall.domain.Category;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,10 +44,41 @@ public class Item {
     @Column(name = "img_url")
     private List<String> imgUrlList = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    private Double rating = 0.0;
+
+    private int reviewCount = 0;
+
+    @ElementCollection
+    @CollectionTable(name = "item_options", joinColumns = @JoinColumn(name = "item_id"))
+    @Column(name = "option_name")
+    private List<String> options = new ArrayList<>();
+
+    private boolean isDiscount;
+
+    private int discountRate;
+
+    private int viewCount = 0;
+
+    private int salesCount = 0;
+
+    @Column(length = 50)
+    private String brand;
+
+    private int deliveryFee;
+
+    @Column(length = 50)
+    private String origin;
+
+    private boolean isDeleted = false;
+
     private LocalDateTime regTime;
     private LocalDateTime updateTime;
 
-    public static Item createItem(ItemFormDto itemFormDto) {
+    public static Item createItem(ItemFormDto itemFormDto, Category category) {
         Item item = new Item();
         item.setItemNm(itemFormDto.getItemNm());
         item.setPrice(itemFormDto.getPrice());
@@ -54,18 +86,46 @@ public class Item {
         item.setItemDetail(itemFormDto.getItemDetail());
         item.setItemSellStatus(itemFormDto.getItemSellStatus());
         item.setImgUrlList(itemFormDto.getImgUrlList());
+        item.setCategory(category);
+        item.setOptions(itemFormDto.getOptions());
+        item.setDiscount(itemFormDto.isDiscount());
+        item.setDiscountRate(itemFormDto.getDiscountRate());
+        item.setBrand(itemFormDto.getBrand());
+        item.setDeliveryFee(itemFormDto.getDeliveryFee());
+        item.setOrigin(itemFormDto.getOrigin());
+        item.setRating(0.0);
+        item.setReviewCount(0);
+        item.setViewCount(0);
+        item.setSalesCount(0);
+        item.setDeleted(false);
         item.setRegTime(LocalDateTime.now());
         item.setUpdateTime(LocalDateTime.now());
         return item;
     }
 
-    public void updateItem(ItemFormDto itemFormDto) {
+    public void updateItem(ItemFormDto itemFormDto, Category category) {
         this.itemNm = itemFormDto.getItemNm();
         this.price = itemFormDto.getPrice();
         this.stockNumber = itemFormDto.getStockNumber();
         this.itemDetail = itemFormDto.getItemDetail();
         this.itemSellStatus = itemFormDto.getItemSellStatus();
         this.imgUrlList = itemFormDto.getImgUrlList();
+        this.category = category;
+        this.options = itemFormDto.getOptions();
+        this.isDiscount = itemFormDto.isDiscount();
+        this.discountRate = itemFormDto.getDiscountRate();
+        this.brand = itemFormDto.getBrand();
+        this.deliveryFee = itemFormDto.getDeliveryFee();
+        this.origin = itemFormDto.getOrigin();
+
         this.updateTime = LocalDateTime.now();
+    }
+
+    public void addViewCount() {
+        this.viewCount++;
+    }
+
+    public void addSalesCount(int count) {
+        this.salesCount += count;
     }
 }
