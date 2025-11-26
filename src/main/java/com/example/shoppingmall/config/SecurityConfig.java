@@ -34,6 +34,10 @@ public class SecurityConfig {
                                 "/members/login",
                                 "/members/forgot-password",
                                 "/members/info",
+                                "/api/main/items",
+                                "/api/ping",
+                                "/api/categories",
+                                "/images/**",
                                 "/css/**", "/js/**", "/assets/**",
                                 "/error",
                                 "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html"
