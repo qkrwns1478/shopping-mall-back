@@ -3,6 +3,7 @@ package com.example.shoppingmall.web.controller;
 import com.example.shoppingmall.domain.Item;
 import com.example.shoppingmall.service.ItemService;
 import com.example.shoppingmall.web.dto.ItemFormDto;
+import com.example.shoppingmall.web.dto.ItemListDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Tag(name = "상품(Item)", description = "상품 등록, 수정, 삭제 및 조회 API")
 @Controller
@@ -62,8 +64,13 @@ public class ItemController {
     public ResponseEntity<Map<String, Object>> itemList(@RequestParam(value = "page", defaultValue = "0") int page) {
         Pageable pageable = PageRequest.of(page, 10, Sort.by("id").descending());
         Page<Item> items = itemService.getAdminItemPage(pageable);
+
+        List<ItemListDto> itemDtos = items.getContent().stream()
+                .map(ItemListDto::new)
+                .collect(Collectors.toList());
+
         return ResponseEntity.ok(Map.of(
-                "content", items.getContent(),
+                "content", itemDtos,
                 "totalPages", items.getTotalPages(),
                 "totalElements", items.getTotalElements(),
                 "number", items.getNumber()

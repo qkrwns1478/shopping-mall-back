@@ -69,6 +69,7 @@ public class ItemService {
     public ItemFormDto getItemDtl(Long itemId) {
         Item item = itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new);
         ItemFormDto itemFormDto = new ItemFormDto();
+
         itemFormDto.setItemNm(item.getItemNm());
         itemFormDto.setPrice(item.getPrice());
         itemFormDto.setStockNumber(item.getStockNumber());
@@ -78,6 +79,13 @@ public class ItemService {
         if (item.getCategory() != null) {
             itemFormDto.setCategoryId(item.getCategory().getId());
         }
+        itemFormDto.setDeliveryFee(item.getDeliveryFee());
+        itemFormDto.setDiscount(item.isDiscount());
+        itemFormDto.setDiscountRate(item.getDiscountRate());
+        itemFormDto.setBrand(item.getBrand());
+        itemFormDto.setOrigin(item.getOrigin());
+        itemFormDto.setOptions(item.getOptions());
+
         return itemFormDto;
     }
 

@@ -1,6 +1,7 @@
 package com.example.shoppingmall.web.dto;
 
 import com.example.shoppingmall.constant.ItemSellStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -33,7 +34,8 @@ public class ItemFormDto {
 
     private List<String> options = new ArrayList<>();
 
-    private boolean isDiscount;
+    @JsonProperty("isDiscount")
+    private Boolean discount;
 
     private int discountRate;
 
@@ -43,4 +45,8 @@ public class ItemFormDto {
     private Integer deliveryFee;
 
     private String origin;
+
+    public boolean isDiscount() {
+        return discount != null && discount;
+    }
 }
