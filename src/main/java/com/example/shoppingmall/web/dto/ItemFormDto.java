@@ -32,7 +32,7 @@ public class ItemFormDto {
     @NotNull(message = "카테고리는 필수 선택 값입니다.")
     private Long categoryId;
 
-    private List<String> options = new ArrayList<>();
+    private List<ItemOptionDto> itemOptionList = new ArrayList<>();
 
     @JsonProperty("isDiscount")
     private Boolean discount;

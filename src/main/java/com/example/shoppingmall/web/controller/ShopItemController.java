@@ -4,6 +4,7 @@ import com.example.shoppingmall.service.ItemService;
 import com.example.shoppingmall.web.dto.ItemFormDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +25,11 @@ public class ShopItemController {
         try {
             ItemFormDto itemFormDto = itemService.getItemDtl(itemId);
             return ResponseEntity.ok(Map.of("success", true, "data", itemFormDto));
-        } catch (Exception e) {
+        } catch (EntityNotFoundException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "존재하지 않는 상품입니다."));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "오류 발생: " + e.getMessage()));
         }
     }
 }
