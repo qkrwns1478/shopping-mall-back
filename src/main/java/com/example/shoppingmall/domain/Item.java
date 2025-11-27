@@ -11,6 +11,7 @@ import lombok.ToString;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name="item")
@@ -54,8 +55,7 @@ public class Item {
 
     @ElementCollection
     @CollectionTable(name = "item_options", joinColumns = @JoinColumn(name = "item_id"))
-    @Column(name = "option_name")
-    private List<String> options = new ArrayList<>();
+    private List<ItemOption> itemOptions = new ArrayList<>();
 
     private boolean isDiscount;
 
@@ -87,7 +87,14 @@ public class Item {
         item.setItemSellStatus(itemFormDto.getItemSellStatus());
         item.setImgUrlList(itemFormDto.getImgUrlList());
         item.setCategory(category);
-        item.setOptions(itemFormDto.getOptions());
+
+        if (itemFormDto.getItemOptionList() != null) {
+            List<ItemOption> options = itemFormDto.getItemOptionList().stream()
+                    .map(dto -> new ItemOption(dto.getOptionName(), dto.getExtraPrice()))
+                    .collect(Collectors.toList());
+            item.setItemOptions(options);
+        }
+
         item.setDiscount(itemFormDto.isDiscount());
         item.setDiscountRate(itemFormDto.getDiscountRate());
         item.setBrand(itemFormDto.getBrand());
@@ -111,7 +118,14 @@ public class Item {
         this.itemSellStatus = itemFormDto.getItemSellStatus();
         this.imgUrlList = itemFormDto.getImgUrlList();
         this.category = category;
-        this.options = itemFormDto.getOptions();
+
+        if (itemFormDto.getItemOptionList() != null) {
+            List<ItemOption> options = itemFormDto.getItemOptionList().stream()
+                    .map(dto -> new ItemOption(dto.getOptionName(), dto.getExtraPrice()))
+                    .collect(Collectors.toList());
+            this.itemOptions = options;
+        }
+
         this.isDiscount = itemFormDto.isDiscount();
         this.discountRate = itemFormDto.getDiscountRate();
         this.brand = itemFormDto.getBrand();

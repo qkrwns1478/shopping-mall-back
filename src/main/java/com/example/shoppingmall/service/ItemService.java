@@ -5,6 +5,7 @@ import com.example.shoppingmall.domain.Item;
 import com.example.shoppingmall.repository.CategoryRepository;
 import com.example.shoppingmall.repository.ItemRepository;
 import com.example.shoppingmall.web.dto.ItemFormDto;
+import com.example.shoppingmall.web.dto.ItemOptionDto;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -84,7 +86,11 @@ public class ItemService {
         itemFormDto.setDiscountRate(item.getDiscountRate());
         itemFormDto.setBrand(item.getBrand());
         itemFormDto.setOrigin(item.getOrigin());
-        itemFormDto.setOptions(item.getOptions());
+
+        List<ItemOptionDto> optionDtos = item.getItemOptions().stream()
+                .map(opt -> new ItemOptionDto(opt.getOptionName(), opt.getExtraPrice()))
+                .collect(Collectors.toList());
+        itemFormDto.setItemOptionList(optionDtos);
 
         return itemFormDto;
     }

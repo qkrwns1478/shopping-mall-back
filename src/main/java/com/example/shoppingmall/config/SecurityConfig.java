@@ -37,6 +37,7 @@ public class SecurityConfig {
                                 "/api/main/items",
                                 "/api/ping",
                                 "/api/categories",
+                                "/api/item/**",
                                 "/images/**",
                                 "/css/**", "/js/**", "/assets/**",
                                 "/error",
