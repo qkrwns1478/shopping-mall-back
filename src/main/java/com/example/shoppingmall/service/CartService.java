@@ -67,12 +67,15 @@ public class CartService {
 
             CartItemDto dto = new CartItemDto(
                     ci.getId(),
+                    ci.getItem().getId(),
                     ci.getItem().getItemNm(),
                     ci.getItem().getPrice(),
                     ci.getCount(),
                     imgUrl,
                     ci.getOptionName(),
-                    ci.getOptionPrice()
+                    ci.getOptionPrice(),
+                    ci.getItem().isDiscount(),
+                    ci.getItem().getDiscountRate()
             );
             cartDetailDtoList.add(dto);
         }
