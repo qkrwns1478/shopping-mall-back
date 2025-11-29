@@ -19,8 +19,10 @@ public class CartItemDto {
     private boolean isDiscount;
     private int discountRate;
     private int deliveryFee;
+    private boolean isPayback;
 
-    public CartItemDto(Long cartItemId, Long itemId, String itemNm, int price, int count, String imgUrl, String optionName, int optionPrice, boolean isDiscount, int discountRate, int deliveryFee) {
+    public CartItemDto(Long cartItemId, Long itemId, String itemNm, int price, int count, String imgUrl,
+                       String optionName, int optionPrice, boolean isDiscount, int discountRate, int deliveryFee, boolean isPayback) {
         this.cartItemId = cartItemId;
         this.itemId = itemId;
         this.itemNm = itemNm;
@@ -32,5 +34,6 @@ public class CartItemDto {
         this.isDiscount = isDiscount;
         this.discountRate = discountRate;
         this.deliveryFee = deliveryFee;
+        this.isPayback = isPayback;
     }
 }

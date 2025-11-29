@@ -6,6 +6,7 @@ import com.example.shoppingmall.service.MemberService;
 import com.example.shoppingmall.web.dto.MemberManageDto;
 import com.example.shoppingmall.web.dto.MemberRoleUpdateDto;
 import com.example.shoppingmall.web.dto.RoleChangeEmailRequestDto;
+import com.example.shoppingmall.web.dto.MemberPointUpdateDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
@@ -104,6 +105,21 @@ public class AdminMemberController {
             memberService.updateMemberRole(memberId, dto.getRole());
             session.removeAttribute("roleChangeCode");
             return ResponseEntity.ok(Map.of("success", true, "message", "회원 권한이 변경되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "회원 포인트 수정", description = "특정 회원의 포인트를 지급하거나 회수합니다.")
+    @PostMapping("/{memberId}/points")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateMemberPoints(
+            @PathVariable("memberId") Long memberId,
+            @RequestBody MemberPointUpdateDto dto
+    ) {
+        try {
+            memberService.updateMemberPoints(memberId, dto.getPoint());
+            return ResponseEntity.ok(Map.of("success", true, "message", "포인트가 수정되었습니다."));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }

@@ -87,6 +87,8 @@ public class ItemService {
         itemFormDto.setBrand(item.getBrand());
         itemFormDto.setOrigin(item.getOrigin());
 
+        itemFormDto.setPayback(item.isPayback());
+
         List<ItemOptionDto> optionDtos = item.getItemOptions().stream()
                 .map(opt -> new ItemOptionDto(opt.getOptionName(), opt.getExtraPrice()))
                 .collect(Collectors.toList());

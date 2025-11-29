@@ -112,7 +112,8 @@ public class MemberController {
                 "authenticated", true,
                 "name", member.getName(),
                 "email", member.getEmail(),
-                "role", member.getRole()
+                "role", member.getRole(),
+                "points", member.getPoints()
         ));
     }
 
@@ -145,6 +146,7 @@ public class MemberController {
         response.put("email", member.getEmail());
         response.put("address", member.getAddress());
         response.put("birthday", member.getBirthday());
+        response.put("points", member.getPoints());
 
         return ResponseEntity.ok(response);
     }

@@ -78,6 +78,8 @@ public class Item {
     private LocalDateTime regTime;
     private LocalDateTime updateTime;
 
+    private boolean isPayback;
+
     public static Item createItem(ItemFormDto itemFormDto, Category category) {
         Item item = new Item();
         item.setItemNm(itemFormDto.getItemNm());
@@ -107,6 +109,7 @@ public class Item {
         item.setDeleted(false);
         item.setRegTime(LocalDateTime.now());
         item.setUpdateTime(LocalDateTime.now());
+        item.setPayback(itemFormDto.isPayback());
         return item;
     }
 
@@ -131,7 +134,7 @@ public class Item {
         this.brand = itemFormDto.getBrand();
         this.deliveryFee = itemFormDto.getDeliveryFee();
         this.origin = itemFormDto.getOrigin();
-
+        this.isPayback = itemFormDto.isPayback();
         this.updateTime = LocalDateTime.now();
     }
 

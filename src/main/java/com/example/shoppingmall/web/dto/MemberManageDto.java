@@ -12,6 +12,7 @@ public class MemberManageDto {
     private String name;
     private String address;
     private MemberRole role;
+    private int points;
 
     public MemberManageDto(Member member) {
         this.id = member.getId();
@@ -19,5 +20,6 @@ public class MemberManageDto {
         this.name = member.getName();
         this.address = member.getAddress();
         this.role = member.getRole();
+        this.points = member.getPoints();
     }
 }
