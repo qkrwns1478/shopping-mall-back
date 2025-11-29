@@ -68,6 +68,9 @@ public class Member {
     }
 
     public void addPoints(int amount) {
+        if (this.points + amount < 0) {
+            throw new IllegalStateException("포인트 잔액이 부족하여 차감할 수 없습니다. (현재: " + this.points + " P)");
+        }
         this.points += amount;
     }
 }

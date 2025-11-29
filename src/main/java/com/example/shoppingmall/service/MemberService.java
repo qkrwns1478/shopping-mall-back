@@ -145,4 +145,10 @@ public class MemberService implements UserDetailsService {
                 .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
         member.setRole(role);
     }
+
+    public void updateMemberPoints(Long memberId, int point) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
+        member.addPoints(point);
+    }
 }
