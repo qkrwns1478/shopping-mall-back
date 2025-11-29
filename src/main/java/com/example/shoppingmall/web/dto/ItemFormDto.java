@@ -49,4 +49,7 @@ public class ItemFormDto {
     public boolean isDiscount() {
         return discount != null && discount;
     }
+
+    @JsonProperty("isPayback")
+    private boolean isPayback;
 }

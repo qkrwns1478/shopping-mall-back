@@ -17,9 +17,6 @@ public class Member {
     @Column(name = "member_id")
     private Long id;
 
-    /* @Column(unique = true, nullable = false, length = 50)
-    private String username; */
-
     @Column(unique = true, nullable = false, length = 100)
     private String email;
 
@@ -37,6 +34,9 @@ public class Member {
     @Column(nullable = false)
     private MemberRole role;
 
+    @Column(nullable = false)
+    private int points = 0;
+
     public void updateMember(String name, String address, LocalDate birthday) {
         this.name = name;
         this.address = address;
@@ -50,13 +50,24 @@ public class Member {
     public static Member createMember(String email, String password,
                                       String name, String address, LocalDate birthday) {
         Member member = new Member();
-        // member.setUsername(username);
         member.setEmail(email);
         member.setPassword(password);
         member.setName(name);
         member.setAddress(address);
         member.setBirthday(birthday);
         member.setRole(MemberRole.USER);
+        member.setPoints(0);
         return member;
+    }
+
+    public void usePoints(int amount) {
+        if (this.points < amount) {
+            throw new IllegalStateException("포인트가 부족합니다.");
+        }
+        this.points -= amount;
+    }
+
+    public void addPoints(int amount) {
+        this.points += amount;
     }
 }

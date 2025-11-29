@@ -76,7 +76,8 @@ public class CartService {
                     ci.getOptionPrice(),
                     ci.getItem().isDiscount(),
                     ci.getItem().getDiscountRate(),
-                    ci.getItem().getDeliveryFee()
+                    ci.getItem().getDeliveryFee(),
+                    ci.getItem().isPayback()
             );
             cartDetailDtoList.add(dto);
         }

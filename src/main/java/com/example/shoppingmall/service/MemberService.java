@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -30,6 +31,9 @@ public class MemberService implements UserDetailsService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+
+    @Value("${welcomePoint}")
+    private int welcomePoint;
 
     public Member saveMember(MemberFormDto memberFormDto) {
         if (!memberFormDto.getPassword().equals(memberFormDto.getPasswordConfirm())) {
@@ -45,6 +49,8 @@ public class MemberService implements UserDetailsService {
                 memberFormDto.getAddress(),
                 memberFormDto.getBirthday()
         );
+
+        member.setPoints(welcomePoint);
 
         return memberRepository.save(member);
     }
