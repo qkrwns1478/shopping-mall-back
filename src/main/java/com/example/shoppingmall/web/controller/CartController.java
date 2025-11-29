@@ -60,6 +60,22 @@ public class CartController {
         }
     }
 
+    @Operation(summary = "장바구니 선택 삭제", description = "여러 장바구니 아이템을 한 번에 삭제합니다.")
+    @PostMapping("/delete")
+    public ResponseEntity<Map<String, Object>> deleteCartItems(@RequestBody Map<String, List<Long>> request, Principal principal) {
+        List<Long> cartItemIds = request.get("cartItemIds");
+        if (cartItemIds == null || cartItemIds.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "삭제할 상품을 선택해주세요."));
+        }
+
+        try {
+            cartService.deleteCartItems(cartItemIds, principal.getName());
+            return ResponseEntity.ok(Map.of("success", true, "message", "선택한 상품이 삭제되었습니다."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
     @Operation(summary = "비회원 장바구니 병합")
     @PostMapping("/merge")
     public ResponseEntity<Map<String, Object>> mergeCart(@RequestBody List<CartOrderDto> localCartItems, Principal principal) {

@@ -51,5 +51,6 @@ public class ItemFormDto {
     }
 
     @JsonProperty("isPayback")
-    private boolean isPayback;
+    // private boolean isPayback; <-- 이러면 DB에 반영 안됨!!!
+    private boolean payback;
 }

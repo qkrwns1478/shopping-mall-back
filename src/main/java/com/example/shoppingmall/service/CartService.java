@@ -90,6 +90,20 @@ public class CartService {
         cartItemRepository.delete(cartItem);
     }
 
+    public void deleteCartItems(List<Long> cartItemIds, String email) {
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        Cart cart = cartRepository.findByMemberId(member.getId());
+
+        if (cart == null) return;
+
+        List<CartItem> itemsToDelete = cartItemRepository.findAllById(cartItemIds);
+        for (CartItem item : itemsToDelete) {
+            if (item.getCart().getId().equals(cart.getId())) {
+                cartItemRepository.delete(item);
+            }
+        }
+    }
+
     public void updateCartItemCount(Long cartItemId, int count) {
         CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow();
         cartItem.updateCount(count);
