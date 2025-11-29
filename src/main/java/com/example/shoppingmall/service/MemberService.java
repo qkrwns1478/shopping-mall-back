@@ -31,6 +31,7 @@ public class MemberService implements UserDetailsService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final CartService cartService;
 
     @Value("${welcomePoint}")
     private int welcomePoint;
@@ -125,7 +126,7 @@ public class MemberService implements UserDetailsService {
         if (!passwordEncoder.matches(password, member.getPassword())) {
             throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
         }
-
+        cartService.deleteCart(member.getId());
         memberRepository.delete(member);
     }
 
@@ -137,6 +138,7 @@ public class MemberService implements UserDetailsService {
     public void deleteMember(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
+        cartService.deleteCart(member.getId());
         memberRepository.delete(member);
     }
 

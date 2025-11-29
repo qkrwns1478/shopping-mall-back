@@ -116,4 +116,13 @@ public class CartService {
             addCart(item, email);
         }
     }
+
+    public void deleteCart(Long memberId) {
+        Cart cart = cartRepository.findByMemberId(memberId);
+        if(cart != null) {
+            List<CartItem> cartItems = cartItemRepository.findByCartIdOrderByRegTimeDesc(cart.getId());
+            cartItemRepository.deleteAll(cartItems);
+            cartRepository.delete(cart);
+        }
+    }
 }

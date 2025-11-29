@@ -24,9 +24,6 @@ public class DataInitializer implements CommandLineRunner {
     @Value("${adminPassword}")
     private String adminPassword;
 
-    @Value("${adminAddress}")
-    private String adminAddress;
-
     @Override
     public void run(String... args) throws Exception {
         if (memberRepository.findByEmail(adminEmail).isEmpty()) {
@@ -34,13 +31,13 @@ public class DataInitializer implements CommandLineRunner {
             admin.setEmail(adminEmail);
             admin.setPassword(passwordEncoder.encode(adminPassword));
             admin.setName("문식사");
-            admin.setAddress(adminAddress);
+            admin.setAddress("문식광역시 문식구 문식동 22");
             admin.setBirthday(LocalDate.now());
             admin.setRole(MemberRole.ADMIN);
             admin.setPoints(100000);
 
             memberRepository.save(admin);
-            System.out.println("관리자 계정 생성 완료");
+            System.out.println("관리자 계정 생성 완료: " + adminEmail);
         }
     }
 }
