@@ -145,4 +145,12 @@ public class Item {
     public void addSalesCount(int count) {
         this.salesCount += count;
     }
+
+    public void removeStock(int stockNumber) {
+        int restStock = this.stockNumber - stockNumber;
+        if (restStock < 0) {
+            throw new IllegalStateException("상품의 재고가 부족합니다. (현재 재고 수량: " + this.stockNumber + ")");
+        }
+        this.stockNumber = restStock;
+    }
 }
