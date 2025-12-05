@@ -153,4 +153,20 @@ public class MemberService implements UserDetailsService {
                 .orElseThrow(() -> new IllegalStateException("존재하지 않는 회원입니다."));
         member.addPoints(point);
     }
+
+    public Member createMemberByAdmin(MemberFormDto memberFormDto) {
+        validateDuplicateMember(memberFormDto.getEmail());
+
+        Member member = Member.createMember(
+                memberFormDto.getEmail(),
+                passwordEncoder.encode(memberFormDto.getPassword()),
+                memberFormDto.getName(),
+                memberFormDto.getAddress(),
+                memberFormDto.getBirthday()
+        );
+
+        member.setPoints(welcomePoint);
+
+        return memberRepository.save(member);
+    }
 }
