@@ -3,6 +3,7 @@ package com.example.shoppingmall.web.controller;
 import com.example.shoppingmall.domain.MemberRole;
 import com.example.shoppingmall.service.EmailService;
 import com.example.shoppingmall.service.MemberService;
+import com.example.shoppingmall.web.dto.MemberFormDto;
 import com.example.shoppingmall.web.dto.MemberManageDto;
 import com.example.shoppingmall.web.dto.MemberRoleUpdateDto;
 import com.example.shoppingmall.web.dto.RoleChangeEmailRequestDto;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +34,19 @@ public class AdminMemberController {
 
     private final MemberService memberService;
     private final EmailService emailService;
+
+    @Operation(summary = "관리자 회원 생성", description = "관리자 권한으로 신규 회원을 생성합니다. 이메일 인증이 생략됩니다.")
+    @PostMapping("")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createMember(@RequestBody @Valid MemberFormDto memberFormDto) {
+        try {
+            // 편의상 비밀번호 확인을 생략하고 바로 생성함
+            memberService.createMemberByAdmin(memberFormDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("success", true, "message", "회원이 성공적으로 생성되었습니다."));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
 
     @Operation(summary = "회원 목록 조회", description = "관리자 권한으로 모든 회원 목록을 페이징하여 조회합니다.")
     @GetMapping("/list")
