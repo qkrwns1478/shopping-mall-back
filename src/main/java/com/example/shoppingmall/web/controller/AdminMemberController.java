@@ -40,7 +40,6 @@ public class AdminMemberController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> createMember(@RequestBody @Valid MemberFormDto memberFormDto) {
         try {
-            // 편의상 비밀번호 확인을 생략하고 바로 생성함
             memberService.createMemberByAdmin(memberFormDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("success", true, "message", "회원이 성공적으로 생성되었습니다."));
         } catch (IllegalStateException e) {
