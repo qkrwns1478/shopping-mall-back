@@ -19,7 +19,15 @@ npm install -g @google/gemini-cli
 }
 ```
 
-### 3. Run Gemini CLI at the root directory
+### 3. Build MCP server
+
+```bash
+npx tsc
+```
+
+Then, there should be `build/index.js`.
+
+### 4. Run Gemini CLI at the root directory
 
 ```bash
 gemini
@@ -27,9 +35,10 @@ gemini
 
 - If there is no MCP server connected, check follow:
   - Did you create `.env` file in the root directory?
+  - Did you build the MCP server?
   - Did you run Spring Boot server?
 
-### 4. Ask Gemini
+### 5. Ask Gemini
 
 > "Give 1000 welcome points to 10 members who recently joined."
 
