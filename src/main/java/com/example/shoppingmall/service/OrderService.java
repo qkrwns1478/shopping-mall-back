@@ -1,5 +1,6 @@
 package com.example.shoppingmall.service;
 
+import com.example.shoppingmall.constant.OrderStatus;
 import com.example.shoppingmall.domain.*;
 import com.example.shoppingmall.repository.*;
 import com.example.shoppingmall.web.dto.OrderHistDto;
@@ -190,5 +191,14 @@ public class OrderService {
             }
             return orderHistDto;
         });
+    }
+
+    public void cancelOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
+        if (order.getStatus() == OrderStatus.CANCEL) {
+            throw new IllegalStateException("이미 취소된 주문입니다.");
+        }
+        order.cancelOrder();
     }
 }
