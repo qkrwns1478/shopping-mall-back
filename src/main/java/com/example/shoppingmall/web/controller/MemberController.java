@@ -104,7 +104,7 @@ public class MemberController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getUserInfo(Principal principal) {
         if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("authenticated", false));
+            return ResponseEntity.ok(Map.of("authenticated", false));
         }
 
         Member member = memberService.findMember(principal.getName());
@@ -113,7 +113,8 @@ public class MemberController {
                 "name", member.getName(),
                 "email", member.getEmail(),
                 "role", member.getRole(),
-                "points", member.getPoints()
+                "points", member.getPoints(),
+                "address", member.getAddress()
         ));
     }
 

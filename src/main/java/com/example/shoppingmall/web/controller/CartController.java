@@ -25,8 +25,12 @@ public class CartController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> addCart(@RequestBody CartOrderDto cartOrderDto, Principal principal){
         try {
-            cartService.addCart(cartOrderDto, principal.getName());
-            return ResponseEntity.ok(Map.of("success", true, "message", "장바구니에 담았습니다."));
+            Long cartItemId = cartService.addCart(cartOrderDto, principal.getName());
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "장바구니에 담았습니다.",
+                    "cartItemId", cartItemId
+            ));
         } catch(Exception e){
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
