@@ -51,4 +51,14 @@ public class Order {
         order.setTotalAmount(totalAmount);
         return order;
     }
+
+    public void cancelOrder() {
+        this.status = OrderStatus.CANCEL;
+        for (OrderItem orderItem : orderItems) {
+            orderItem.cancel();
+        }
+        if (this.usedPoints > 0) {
+            this.member.addPoints(this.usedPoints);
+        }
+    }
 }

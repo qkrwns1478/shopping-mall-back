@@ -1,5 +1,6 @@
 package com.example.shoppingmall.service;
 
+import com.example.shoppingmall.constant.OrderStatus;
 import com.example.shoppingmall.domain.*;
 import com.example.shoppingmall.repository.*;
 import com.example.shoppingmall.web.dto.OrderHistDto;
@@ -13,6 +14,8 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -169,5 +172,33 @@ public class OrderService {
         }
 
         return orderHistDtos;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrderHistDto> getAdminOrderPage(Pageable pageable) {
+        Page<Order> orders = orderRepository.findAll(pageable);
+
+        return orders.map(order -> {
+            OrderHistDto orderHistDto = new OrderHistDto(order);
+            List<OrderItem> orderItems = order.getOrderItems();
+            for (OrderItem orderItem : orderItems) {
+                String imgUrl = "";
+                if (!orderItem.getItem().getImgUrlList().isEmpty()) {
+                    imgUrl = orderItem.getItem().getImgUrlList().get(0);
+                }
+                OrderItemDto orderItemDto = new OrderItemDto(orderItem, imgUrl);
+                orderHistDto.addOrderItemDto(orderItemDto);
+            }
+            return orderHistDto;
+        });
+    }
+
+    public void cancelOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
+        if (order.getStatus() == OrderStatus.CANCEL) {
+            throw new IllegalStateException("이미 취소된 주문입니다.");
+        }
+        order.cancelOrder();
     }
 }
