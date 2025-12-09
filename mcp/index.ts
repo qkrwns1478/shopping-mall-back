@@ -386,6 +386,59 @@ server.tool(
     }
 );
 
+// ---------------------------------------------------------
+// [주문 관리 도구]
+// ---------------------------------------------------------
+
+server.tool(
+    "search_orders",
+    "관리자용 주문 목록을 조회합니다. 주문번호, 주문자(이메일), 상태, 결제금액, 대표 상품명 등을 확인할 수 있습니다.",
+    {
+        page: z.number().default(0).describe("페이지 번호 (0부터 시작)"),
+    },
+    async ({ page }) => {
+        try {
+            const response = await api.get(`/api/admin/orders?page=${page}`);
+
+            const orders = response.data.content.map((o: any) => ({
+                orderId: o.orderId,
+                member: o.memberEmail,
+                date: o.orderDate,
+                status: o.orderStatus,
+                amount: o.totalAmount,
+                items: o.orderItemDtoList.map((item: any) =>
+                    `${item.itemNm} (${item.count}개)`
+                ).join(', ')
+            }));
+
+            return {
+                content: [{ type: "text", text: JSON.stringify(orders, null, 2) }],
+            };
+        } catch (error) {
+            return { content: [{ type: "text", text: "주문 목록 조회 실패" }] };
+        }
+    }
+);
+
+server.tool(
+    "cancel_order",
+    "특정 주문을 취소 처리합니다. (주의: DB 상태만 변경되며, 실제 PG사 결제 취소는 포트원 관리자 콘솔에서 진행해야 한다는 메시지를 반환합니다)",
+    {
+        orderId: z.number().describe("취소할 주문 ID"),
+    },
+    async ({ orderId }) => {
+        try {
+            const response = await api.post(`/api/admin/orders/${orderId}/cancel`);
+            return {
+                content: [{ type: "text", text: `성공: ${response.data.message}` }],
+            };
+        } catch (error: any) {
+            const msg = error.response?.data?.message || "주문 취소 실패";
+            return { content: [{ type: "text", text: `에러: ${msg}` }] };
+        }
+    }
+);
+
 async function main() {
     await loginAsAdmin();
     const transport = new StdioServerTransport();
