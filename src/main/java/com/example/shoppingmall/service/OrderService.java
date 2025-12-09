@@ -13,6 +13,8 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -169,5 +171,24 @@ public class OrderService {
         }
 
         return orderHistDtos;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrderHistDto> getAdminOrderPage(Pageable pageable) {
+        Page<Order> orders = orderRepository.findAll(pageable);
+
+        return orders.map(order -> {
+            OrderHistDto orderHistDto = new OrderHistDto(order);
+            List<OrderItem> orderItems = order.getOrderItems();
+            for (OrderItem orderItem : orderItems) {
+                String imgUrl = "";
+                if (!orderItem.getItem().getImgUrlList().isEmpty()) {
+                    imgUrl = orderItem.getItem().getImgUrlList().get(0);
+                }
+                OrderItemDto orderItemDto = new OrderItemDto(orderItem, imgUrl);
+                orderHistDto.addOrderItemDto(orderItemDto);
+            }
+            return orderHistDto;
+        });
     }
 }

@@ -8,6 +8,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.security.Principal;
 import java.util.List;
@@ -41,5 +45,19 @@ public class OrderController {
     public ResponseEntity<List<OrderHistDto>> getOrderList(Principal principal) {
         List<OrderHistDto> orderHistDtoList = orderService.getOrderList(principal.getName());
         return ResponseEntity.ok(orderHistDtoList);
+    }
+
+    @Operation(summary = "관리자 주문 목록 조회")
+    @GetMapping("/admin/orders")
+    public ResponseEntity<Map<String, Object>> getAdminOrderList(@RequestParam(value = "page", defaultValue = "0") int page) {
+        Pageable pageable = PageRequest.of(page, 10, Sort.by("orderDate").descending());
+        Page<OrderHistDto> orderHistDtoPage = orderService.getAdminOrderPage(pageable);
+
+        return ResponseEntity.ok(Map.of(
+                "content", orderHistDtoPage.getContent(),
+                "totalPages", orderHistDtoPage.getTotalPages(),
+                "totalElements", orderHistDtoPage.getTotalElements(),
+                "number", orderHistDtoPage.getNumber()
+        ));
     }
 }

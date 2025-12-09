@@ -15,6 +15,7 @@ public class OrderHistDto {
     private String orderDate;
     private OrderStatus orderStatus;
     private int totalAmount;
+    private String memberEmail;
     private List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
     public OrderHistDto(Order order){
@@ -22,6 +23,7 @@ public class OrderHistDto {
         this.orderDate = order.getOrderDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         this.orderStatus = order.getStatus();
         this.totalAmount = order.getTotalAmount();
+        this.memberEmail = order.getMember().getEmail();
     }
 
     public void addOrderItemDto(OrderItemDto orderItemDto){
