@@ -32,6 +32,7 @@ public class OrderService {
     private final ItemRepository itemRepository;
     private final OrderRepository orderRepository;
     private final CartService cartService;
+    private final CouponRepository couponRepository;
 
     @Value("${portone.api.secret}")
     private String apiSecret;
@@ -45,6 +46,22 @@ public class OrderService {
         List<OrderItem> orderItemList = new ArrayList<>();
         int dbTotalItemPrice = 0;
         int totalDeliveryFee = 0;
+
+        int couponDiscount = 0;
+        if (request.getCouponId() != null) {
+            Coupon coupon = couponRepository.findById(request.getCouponId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다."));
+
+            if (coupon.getStock() <= 0) {
+                throw new IllegalStateException("쿠폰이 소진되었습니다.");
+            }
+            if (coupon.getValidUntil() != null && coupon.getValidUntil().isBefore(LocalDateTime.now())) {
+                throw new IllegalStateException("만료된 쿠폰입니다.");
+            }
+
+            couponDiscount = coupon.getDiscountAmount();
+            coupon.decreaseStock();
+        }
 
         for (PaymentRequestDto.OrderItemDto itemDto : request.getOrderItems()) {
             Item item = itemRepository.findById(itemDto.getItemId())
@@ -73,7 +90,7 @@ public class OrderService {
             dbTotalItemPrice += (finalPrice * itemDto.getCount());
         }
 
-        int expectedAmount = dbTotalItemPrice + totalDeliveryFee - request.getUsedPoints();
+        int expectedAmount = dbTotalItemPrice + totalDeliveryFee - request.getUsedPoints() - couponDiscount;
         if (expectedAmount < 0) expectedAmount = 0;
 
         if (request.getAmount() > 0) {

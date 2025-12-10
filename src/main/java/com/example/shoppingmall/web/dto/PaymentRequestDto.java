@@ -13,6 +13,7 @@ public class PaymentRequestDto {
     private int amount;
     private int usedPoints;
     private List<OrderItemDto> orderItems;
+    private Long couponId;
 
     @Getter @Setter
     @ToString
