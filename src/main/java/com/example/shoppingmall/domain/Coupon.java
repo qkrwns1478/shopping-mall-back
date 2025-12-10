@@ -6,6 +6,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "coupon")
 @Getter @Setter
 public class Coupon {
 
@@ -18,13 +19,19 @@ public class Coupon {
 
     private String name;
     private int discountAmount;
-    private int stock;
     private LocalDateTime validUntil;
 
-    public void decreaseStock() {
-        if (this.stock <= 0) {
-            throw new IllegalStateException("쿠폰이 모두 소진되었습니다.");
-        }
-        this.stock--;
+    private LocalDateTime regTime;
+    private LocalDateTime updateTime;
+
+    @PrePersist
+    public void prePersist() {
+        this.regTime = LocalDateTime.now();
+        this.updateTime = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updateTime = LocalDateTime.now();
     }
 }

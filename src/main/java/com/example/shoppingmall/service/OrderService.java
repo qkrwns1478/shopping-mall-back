@@ -32,7 +32,7 @@ public class OrderService {
     private final ItemRepository itemRepository;
     private final OrderRepository orderRepository;
     private final CartService cartService;
-    private final CouponRepository couponRepository;
+    private final MemberCouponRepository memberCouponRepository;
 
     @Value("${portone.api.secret}")
     private String apiSecret;
@@ -48,19 +48,22 @@ public class OrderService {
         int totalDeliveryFee = 0;
 
         int couponDiscount = 0;
-        if (request.getCouponId() != null) {
-            Coupon coupon = couponRepository.findById(request.getCouponId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다."));
+        if (request.getMemberCouponId() != null) {
+            MemberCoupon memberCoupon = memberCouponRepository.findById(request.getMemberCouponId())
+                    .orElseThrow(() -> new IllegalArgumentException("보유하지 않은 쿠폰입니다."));
 
-            if (coupon.getStock() <= 0) {
-                throw new IllegalStateException("쿠폰이 소진되었습니다.");
+            if (!memberCoupon.getMember().getEmail().equals(email)) {
+                throw new IllegalStateException("본인의 쿠폰만 사용할 수 있습니다.");
             }
-            if (coupon.getValidUntil() != null && coupon.getValidUntil().isBefore(LocalDateTime.now())) {
-                throw new IllegalStateException("만료된 쿠폰입니다.");
+            if (memberCoupon.isUsed()) {
+                throw new IllegalStateException("이미 사용된 쿠폰입니다.");
+            }
+            if (memberCoupon.getExpireAt() != null && memberCoupon.getExpireAt().isBefore(LocalDateTime.now())) {
+                throw new IllegalStateException("유효기간이 만료된 쿠폰입니다.");
             }
 
-            couponDiscount = coupon.getDiscountAmount();
-            coupon.decreaseStock();
+            couponDiscount = memberCoupon.getCoupon().getDiscountAmount();
+            memberCoupon.use();
         }
 
         for (PaymentRequestDto.OrderItemDto itemDto : request.getOrderItems()) {
