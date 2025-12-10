@@ -439,6 +439,79 @@ server.tool(
     }
 );
 
+// ---------------------------------------------------------
+// [쿠폰 관리 도구]
+// ---------------------------------------------------------
+
+server.tool(
+    "list_coupons",
+    "현재 등록된 모든 쿠폰 목록을 조회합니다.",
+    {},
+    async () => {
+        try {
+            const response = await api.get('/admin/coupons');
+            const coupons = response.data.map((c: any) => ({
+                id: c.id,
+                name: c.name,
+                code: c.code,
+                discountAmount: c.discountAmount,
+                validUntil: c.validUntil
+            }));
+
+            return {
+                content: [{ type: "text", text: JSON.stringify(coupons, null, 2) }],
+            };
+        } catch (error) {
+            return { content: [{ type: "text", text: "쿠폰 목록 조회 실패" }] };
+        }
+    }
+);
+
+server.tool(
+    "create_coupon",
+    "새로운 쿠폰을 생성합니다. 유효기간은 'YYYY-MM-DD' 형식으로 입력합니다.",
+    {
+        name: z.string().describe("쿠폰 이름"),
+        code: z.string().describe("쿠폰 코드 (중복 불가)"),
+        discountAmount: z.number().describe("할인 금액"),
+        validUntil: z.string().describe("유효기간 (예: 2024-12-31)"),
+    },
+    async (params) => {
+        try {
+            const response = await api.post('/admin/coupons', params);
+            return {
+                content: [{ type: "text", text: `성공: ${response.data.message}` }],
+            };
+        } catch (error: any) {
+            const msg = error.response?.data?.message || "쿠폰 생성 실패";
+            return { content: [{ type: "text", text: `에러: ${msg}` }] };
+        }
+    }
+);
+
+server.tool(
+    "bulk_issue_coupon",
+    "특정 쿠폰을 선택한 회원들에게 일괄 지급합니다.",
+    {
+        couponId: z.number().describe("지급할 쿠폰 ID"),
+        memberIds: z.array(z.number()).describe("지급 대상 회원 ID 목록 (예: [1, 2, 3])"),
+    },
+    async ({ couponId, memberIds }) => {
+        try {
+            const response = await api.post('/admin/coupons/bulk-issue', {
+                couponId,
+                memberIds
+            });
+            return {
+                content: [{ type: "text", text: `성공: ${response.data.message}` }],
+            };
+        } catch (error: any) {
+            const msg = error.response?.data?.message || "쿠폰 일괄 지급 실패";
+            return { content: [{ type: "text", text: `에러: ${msg}` }] };
+        }
+    }
+);
+
 async function main() {
     await loginAsAdmin();
     const transport = new StdioServerTransport();
