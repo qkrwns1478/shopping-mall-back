@@ -6,9 +6,6 @@
 
 ## Key Problem Solving
 
-<details>
-<summary>접기/펼치기</summary>
-
 ### **쇼핑몰 운영 효율화를 위한 Spring Boot 기반 MCP AI 에이전트 서버 구축**
 
 **1. 문제**
@@ -69,8 +66,6 @@
 - **시스템 신뢰성 확보:** 서버 점검이나 장애 상황에서도 사용자에게 명확한 피드백을 제공하고, 보안 사고를 예방하여 시스템 안전성을 확보했습니다.
 - **관리자 기능 완성:** 회원 목록 조회, 삭제, 권한 변경 등 관리자 핵심 기능을 완성하여 쇼핑몰 운영을 위한 기반 시스템을 성공적으로 런칭했습니다.
 
-</details>
-
 ## Tech Stacks
 
 ### Application
@@ -85,6 +80,9 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white)
 ![Axios](https://img.shields.io/badge/Axios-5A29E4?logo=axios&logoColor=white)
+
+## Architecture
+<img width="2592" height="1372" alt="image" src="https://github.com/user-attachments/assets/f244c7e2-3c09-4425-8a34-d4cef34fa8cd" />
 
 ## Environment Vairables `.env`
 ```
